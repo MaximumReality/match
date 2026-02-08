@@ -21,7 +21,6 @@
             justify-content: center;
             height: 100vh;
         }
-        /* CRT Scanline Overlay */
         #crt-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -35,20 +34,41 @@
             position: relative;
             border: 2px solid var(--neon-pink);
             box-shadow: 0 0 15px var(--neon-pink);
+            padding: 5px;
+        }
+        #smokin-cat {
+            position: absolute;
+            bottom: -10px;
+            right: -60px; /* Leaning against the frame */
+            width: 80px;
+            z-index: 5;
+            filter: drop-shadow(0 0 5px var(--neon-pink));
         }
         canvas {
             display: block;
             background: #111;
-            touch-action: none; /* Prevents scrolling while playing */
+            touch-action: none;
         }
         #ui-layer {
             text-align: center;
             margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 2px;
-            text-shadow: 0 0 5px var(--neon-cyan);
         }
-        .status-msg { font-size: 0.8rem; color: #ff0000; }
+        .status-msg { font-size: 0.8rem; color: #ff0000; height: 1.2rem; }
+        #reset-btn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            padding: 15px;
+            background: rgba(0,0,0,0.9);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            font-family: 'Courier New';
+            display: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -61,19 +81,15 @@
 </div>
 
 <div id="game-container">
-    <button id="reset-btn" onclick="resetGame()" style="display:none; margin-top:20px; padding:10px 20px; background:transparent; border:1px solid var(--neon-cyan); color:var(--neon-cyan); font-family:'Courier New'; cursor:pointer; text-transform:uppercase;">
-    Scrub the Box (Restart)
-</button>
-
+    <img src="smokin.png" id="smokin-cat" alt="sass">
+    <button id="reset-btn" onclick="resetGame()">Scrub the Box (Restart)</button>
     <canvas id="gameCanvas"></canvas>
 </div>
 
 <script>
-           // --- GLOBAL VARIABLES ---
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    const ROWS = 8;
-    const COLS = 8;
+    const ROWS = 8; const COLS = 8;
     const TILE_SIZE = Math.min(window.innerWidth / 8.5, 45);
     canvas.width = COLS * TILE_SIZE;
     canvas.height = ROWS * TILE_SIZE;
@@ -84,25 +100,18 @@
         'summer_azulos.png', 'mochkil_puffs_orange.png', 'mochkil_puffs_dessert_edition.png'
     ];
     const MEGA_BURGER = 'mochkil-burger.png';
-    const LITTER_BOX_IMG = 'litter-box.png'; // Make sure to save the image as this!
+    const LITTER_BOX_IMG = 'litter-box.png';
+    const SMOKIN = 'smokin.png';
 
-    let grid = [];
-    let images = {};
-    let firstSelection = null;
-    let poops = [];
-    let audioStarted = false;
-    let moveTimer; // Global timer
-    let gameActive = true;
-    const TIME_LIMIT = 7000; // 7 seconds
+    let grid = []; let images = {}; let firstSelection = null;
+    let poops = []; let audioStarted = false; let moveTimer;
+    let gameActive = true; const TIME_LIMIT = 7000;
 
     const bgMusic = new Audio('hard-cyberpunk.mp3');
-    bgMusic.loop = true;
-    bgMusic.volume = 0.5;
-
-    // --- LOGIC ---
+    bgMusic.loop = true; bgMusic.volume = 0.5;
 
     function preload() {
-        const allAssets = [...CEREAL_TYPES, MEGA_BURGER, LITTER_BOX_IMG];
+        const allAssets = [...CEREAL_TYPES, MEGA_BURGER, LITTER_BOX_IMG, SMOKIN];
         let loadedCount = 0;
         allAssets.forEach(src => {
             const img = new Image();
@@ -117,16 +126,14 @@
 
     function start() {
         createCerealGrid();
-        resetStinkTimer(); // Start the first countdown
+        resetStinkTimer();
         draw();
     }
 
     function resetStinkTimer() {
         if (!gameActive) return;
         clearTimeout(moveTimer);
-        moveTimer = setTimeout(() => {
-            triggerLitterBoxFailure();
-        }, TIME_LIMIT);
+        moveTimer = setTimeout(() => triggerLitterBoxFailure(), TIME_LIMIT);
     }
 
     function createCerealGrid() {
@@ -150,10 +157,9 @@
     canvas.addEventListener('touchstart', (e) => {
         if (!gameActive) return;
         startAudio();
-        const touch = e.touches[0];
         const rect = canvas.getBoundingClientRect();
-        const col = Math.floor((touch.clientX - rect.left) / TILE_SIZE);
-        const row = Math.floor((touch.clientY - rect.top) / TILE_SIZE);
+        const col = Math.floor((e.touches[0].clientX - rect.left) / TILE_SIZE);
+        const row = Math.floor((e.touches[0].clientY - rect.top) / TILE_SIZE);
         handleTileSelect(row, col);
     }, { passive: false });
 
@@ -166,7 +172,7 @@
             if ((dR === 1 && dC === 0) || (dR === 0 && dC === 1)) {
                 swapTiles(firstSelection.r, firstSelection.c, r, c);
                 checkMatches();
-                resetStinkTimer(); // Reset timer after a successful move attempt
+                resetStinkTimer();
             }
             firstSelection = null;
         }
@@ -204,7 +210,6 @@
             const [r, c] = pos.split(',').map(Number);
             grid[r][c] = null;
         });
-
         for (let c = 0; c < COLS; c++) {
             let emptySlot = ROWS - 1;
             for (let r = ROWS - 1; r >= 0; r--) {
@@ -222,26 +227,12 @@
         }
     }
 
-    function resetGame() {
-    gameActive = true;
-    poops = [];
-    bgMusic.playbackRate = 1.0;
-    document.getElementById('status').innerText = "SYSTEM ACTIVE: BUREAUCRACY IN PROGRESS";
-    document.getElementById('reset-btn').style.display = 'none';
-    createCerealGrid();
-    resetStinkTimer();
-}
-
-// Update your triggerLitterBoxFailure to show the button:
-function triggerLitterBoxFailure() {
-    gameActive = false;
-    clearTimeout(moveTimer);
-    bgMusic.playbackRate = 0.5; 
-    document.getElementById('status').innerText = "SYSTEM CLOGGED: CLEAN THE BOX";
-    document.getElementById('reset-btn').style.display = 'inline-block'; // Show the button
-    // ... rest of poop rain logic
-}
-
+    function triggerLitterBoxFailure() {
+        gameActive = false;
+        clearTimeout(moveTimer);
+        bgMusic.playbackRate = 0.5; 
+        document.getElementById('status').innerText = "CLEAN THE BOX: TICKET #404-POO";
+        document.getElementById('reset-btn').style.display = 'block';
         for(let i = 0; i < 50; i++) {
             poops.push({ 
                 x: Math.random() * canvas.width, 
@@ -252,46 +243,41 @@ function triggerLitterBoxFailure() {
         }
     }
 
+    function resetGame() {
+        gameActive = true; poops = []; bgMusic.playbackRate = 1.0;
+        document.getElementById('status').innerText = "SYSTEM ACTIVE";
+        document.getElementById('reset-btn').style.display = 'none';
+        createCerealGrid(); resetStinkTimer();
+    }
+
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Render Cereal
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 const tile = grid[r][c];
                 if (tile) {
                     ctx.drawImage(tile.img, tile.x + 2, tile.y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
                     if (firstSelection && firstSelection.r === r && firstSelection.c === c) {
-                        ctx.strokeStyle = '#ff00ff';
-                        ctx.lineWidth = 3;
-                        ctx.strokeRect(tile.x + 2, tile.y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                        ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 3;
+                        ctx.strokeRect(tile.x+2, tile.y+2, TILE_SIZE-4, TILE_SIZE-4);
                     }
                 }
             }
         }
-        
-        // Draw the Poop Rain
         ctx.font = "28px Arial";
         poops.forEach(p => {
-            p.y += p.speed;
-            ctx.save();
-            ctx.translate(p.x, p.y);
-            ctx.rotate(p.rot * Math.PI / 180);
-            ctx.fillText("💩", 0, 0);
-            ctx.restore();
+            p.y += p.speed; ctx.save(); ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot * Math.PI / 180); ctx.fillText("💩", 0, 0); ctx.restore();
         });
-
-        // Draw Litter Box if game failed
         if (!gameActive) {
             ctx.drawImage(images[LITTER_BOX_IMG], (canvas.width/2) - 50, 20, 100, 80);
+            ctx.fillStyle = "#00ffff"; ctx.font = "12px 'Courier New'";
+            ctx.fillText("MAINTENANCE REQUIRED", canvas.width/2 - 65, 120);
+            ctx.fillText("SUBMIT TICKET #404-POO", canvas.width/2 - 70, 140);
         }
-
         requestAnimationFrame(draw);
     }
-
     preload();
-
-
 </script>
 </body>
 </html>
