@@ -30,6 +30,37 @@
             border: 2px solid var(--neon-cyan); color: var(--neon-cyan);
             font-family: 'Courier New'; display: none; cursor: pointer;
         }
+        #control-deck {
+    margin-top: 15px;
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    background: rgba(255, 0, 255, 0.1);
+    padding: 10px 30px;
+    border-radius: 50px;
+    border: 1px solid var(--neon-pink);
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.2);
+    z-index: 150;
+}
+
+.deck-icon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s, filter 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.deck-icon:active {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 8px var(--neon-cyan));
+}
+
+#home-link {
+    text-decoration: none;
+    color: inherit;
+}
+
     </style>
 </head>
 <body>
@@ -44,8 +75,41 @@
     <button id="reset-btn" onclick="resetGame()">Scrub the Box (Restart)</button>
     <canvas id="gameCanvas"></canvas>
 </div>
+    <div id="control-deck">
+    <span id="mute-btn" class="deck-icon" onclick="toggleMute()">🔊</span>
+    <span id="play-pause-btn" class="deck-icon" onclick="togglePlay()">⏯️</span>
+    <a href="https://maximumreality.xyz" id="home-link" class="deck-icon">🏡</a>
+</div>
+
 
 <script>
+    let isMuted = false;
+let isPaused = false;
+
+function toggleMute() {
+    isMuted = !isMuted;
+    bgMusic.muted = isMuted;
+    document.getElementById('mute-btn').innerText = isMuted ? "🔇" : "🔊";
+}
+
+function togglePlay() {
+    if (!audioStarted) {
+        startAudio();
+        return;
+    }
+    isPaused = !isPaused;
+    if (isPaused) {
+        bgMusic.pause();
+        gameActive = false; // Optional: Stop the stink timer when paused
+        document.getElementById('status').innerText = "SYSTEM PAUSED";
+    } else {
+        bgMusic.play();
+        gameActive = true;
+        resetStinkTimer();
+        document.getElementById('status').innerText = "SYSTEM ACTIVE";
+    }
+}
+
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
