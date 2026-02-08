@@ -1,33 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
-    <link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="favicon.png">
-<meta name="apple-mobile-web-app-title" content="MatchModule">
-    <meta name="robots" content="index, follow">
-<meta name="theme-color" content="#ff00ff">
-<meta name="application-name" content="Match Module">
-
-    
-  
+<<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>MAXIMUM REALITY: Match Module</title>
+
+    <!-- Favicon / Home Screen -->
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="MatchModule">
+    <meta name="application-name" content="Match Module">
+    <meta name="theme-color" content="#ff00ff">
+    <meta name="robots" content="index, follow">
+
+    <!-- SEO / Description -->
+    <meta name="description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine. Drag. Merge. Maintain the litter box. Welcome to Maximum Reality.">
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://maximumreality.github.io/match/">
+    <meta property="og:title" content="MAXIMUM REALITY: Match Module">
+    <meta property="og:description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine. Drag. Merge. Maintain the litter box.">
+    <meta property="og:image" content="https://maximumreality.github.io/match/og-matchmodule.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MAXIMUM REALITY: Match Module">
+    <meta name="twitter:description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine.">
+    <meta name="twitter:image" content="https://maximumreality.github.io/match/og-matchmodule.png">
+
+    <!-- Styles (keep your UI, buttons, animations, keyframes) -->
     <style>
         :root { --neon-pink: #ff00ff; --neon-cyan: #00ffff; }
         body {
-            margin: 0; background: #0a0a0a; color: var(--neon-cyan);
-            font-family: 'Courier New', monospace; overflow: hidden;
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; height: 100vh;
-            touch-action: none; -webkit-user-select: none;
+            margin: 0; 
+            background: #0a0a0a; 
+            color: var(--neon-cyan);
+            font-family: 'Courier New', monospace; 
+            overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; touch-action: none; -webkit-user-select: none;
         }
 
-        /* --- SPLASH SCREEN --- */
+        /* Splash Screen */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 1000; display: flex;
@@ -37,7 +58,7 @@
         .glitch-text { font-size: 1.5rem; margin: 10px; text-shadow: 2px 2px var(--neon-pink); }
         .splash-cast { position: absolute; width: 100px; filter: drop-shadow(0 0 5px var(--neon-pink)); }
 
-        /* --- GAME UI --- */
+        /* Game UI */
         #ui-layer { text-align: center; margin-bottom: 5px; width: 100%; position: relative; }
         #game-container {
             position: relative; border: 4px solid var(--neon-pink);
@@ -50,7 +71,7 @@
         canvas { display: block; background: #111; }
         .status-msg { font-size: 0.7rem; color: #ff0000; text-transform: uppercase; height: 1.2rem; }
 
-        /* --- CONTROL DECK --- */
+        /* Control Deck */
         #control-deck {
             margin-top: 15px; display: flex; gap: 25px; align-items: center;
             background: rgba(255, 0, 255, 0.1); padding: 10px 30px;
@@ -60,6 +81,7 @@
         .deck-icon:active { transform: scale(1.2); }
         #home-link { text-decoration: none; color: inherit; }
 
+        /* Reset Button */
         #reset-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             z-index: 200; padding: 20px; background: rgba(0,0,0,0.95);
@@ -67,37 +89,9 @@
             font-family: 'Courier New'; display: none;
         }
 
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        /* Animations */
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
     </style>
-    <!-- FAVICON / HOME SCREEN -->
-<link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
-<link rel="manifest" href="manifest.json">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="MatchModule">
-<meta name="application-name" content="Match Module">
-<meta name="theme-color" content="#ff00ff">
-<meta name="robots" content="index, follow">
-    <!-- Primary Meta -->
-<meta name="title" content="MAXIMUM REALITY: Match Module">
-<meta name="description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine. Drag. Merge. Maintain the litter box. Welcome to Maximum Reality.">
-
-<!-- Open Graph / Facebook / WhatsApp -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://maximumreality.github.io/match/">
-<meta property="og:title" content="MAXIMUM REALITY: Match Module">
-<meta property="og:description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine. Drag. Merge. Maintain the litter box.">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image" content="https://maximumreality.github.io/match/og-matchmodule.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="MAXIMUM REALITY: Match Module">
-<meta name="twitter:description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine.">
-<meta name="twitter:image" content="https://maximumreality.github.io/match/og-matchmodule.png">
 </head>
 <body>
 
