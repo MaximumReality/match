@@ -6,69 +6,69 @@
     <title>Azul-O's: The Bureaucracy Grind</title>
     <style>
         :root {
-            --neon-pink: #ff00ff;
-            --neon-cyan: #00ffff;
-        }
-        body {
-            margin: 0;
-            background: #0a0a0a;
-            color: var(--neon-cyan);
-            font-family: 'Courier New', monospace;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        #crt-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 3px 100%;
-            pointer-events: none;
-            z-index: 10;
-        }
-        #game-container {
-            position: relative;
-            border: 2px solid var(--neon-pink);
-            box-shadow: 0 0 15px var(--neon-pink);
-            padding: 5px;
-        }
-        #smokin-cat {
-            position: absolute;
-            bottom: -10px;
-            right: -60px; /* Leaning against the frame */
-            width: 80px;
-            z-index: 5;
-            filter: drop-shadow(0 0 5px var(--neon-pink));
-        }
-        canvas {
-            display: block;
-            background: #111;
-            touch-action: none;
-        }
-        #ui-layer {
-            text-align: center;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .status-msg { font-size: 0.8rem; color: #ff0000; height: 1.2rem; }
-        #reset-btn {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 20;
-            padding: 15px;
-            background: rgba(0,0,0,0.9);
-            border: 2px solid var(--neon-cyan);
-            color: var(--neon-cyan);
-            font-family: 'Courier New';
-            display: none;
-            cursor: pointer;
-        }
+    --neon-pink: #ff00ff;
+    --neon-cyan: #00ffff;
+}
+body {
+    margin: 0;
+    background: #0a0a0a;
+    color: var(--neon-cyan);
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    /* Stops iPhone double-tap to zoom */
+    touch-action: manipulation; 
+    -webkit-user-select: none; /* Prevents text selection popups */
+}
+
+/* Removed CRT Overlay for a crisp look */
+
+#game-container {
+    position: relative;
+    border: 2px solid var(--neon-pink);
+    box-shadow: 0 0 15px var(--neon-pink);
+    padding: 5px;
+    background: #000;
+}
+#smokin-cat {
+    position: absolute;
+    bottom: -10px;
+    right: -60px;
+    width: 80px;
+    z-index: 5;
+    filter: drop-shadow(0 0 5px var(--neon-pink));
+}
+canvas {
+    display: block;
+    background: #111;
+    /* Extra insurance against iOS gestures */
+    touch-action: none; 
+}
+#ui-layer {
+    text-align: center;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+.status-msg { font-size: 0.8rem; color: #ff0000; height: 1.2rem; }
+#reset-btn {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    padding: 15px;
+    background: rgba(0,0,0,0.9);
+    border: 2px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    font-family: 'Courier New';
+    display: none;
+    cursor: pointer;
+}
+
     </style>
 </head>
 <body>
@@ -155,13 +155,20 @@
     }
 
     canvas.addEventListener('touchstart', (e) => {
-        if (!gameActive) return;
-        startAudio();
-        const rect = canvas.getBoundingClientRect();
-        const col = Math.floor((e.touches[0].clientX - rect.left) / TILE_SIZE);
-        const row = Math.floor((e.touches[0].clientY - rect.top) / TILE_SIZE);
-        handleTileSelect(row, col);
-    }, { passive: false });
+    // This line is critical: it stops the iPhone from zooming or selecting
+    if (e.cancelable) e.preventDefault(); 
+    
+    if (!gameActive) return;
+    
+    startAudio();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    
+    const col = Math.floor((touch.clientX - rect.left) / TILE_SIZE);
+    const row = Math.floor((touch.clientY - rect.top) / TILE_SIZE);
+    
+    handleTileSelect(row, col);
+}, { passive: false }); // 'passive: false' allows us to use preventDefault()
 
     function handleTileSelect(r, c) {
         if (!firstSelection) {
