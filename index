@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Azul-O's: The Bureaucracy Grind</title>
+    <style>
+        :root {
+            --neon-pink: #ff00ff;
+            --neon-cyan: #00ffff;
+        }
+        body {
+            margin: 0;
+            background: #0a0a0a;
+            color: var(--neon-cyan);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            /* iPhone Anti-Zoom Suite */
+            touch-action: manipulation; 
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        #game-container {
+            position: relative;
+            border: 2px solid var(--neon-pink);
+            box-shadow: 0 0 15px var(--neon-pink);
+            padding: 5px;
+            background: #000;
+        }
+        #smokin-cat {
+            position: absolute;
+            bottom: -10px;
+            right: -60px;
+            width: 80px;
+            z-index: 5;
+            filter: drop-shadow(0 0 5px var(--neon-pink));
+        }
+        canvas {
+            display: block;
+            background: #111;
+            touch-action: none; 
+        }
+        #ui-layer {
+            text-align: center;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .status-msg { font-size: 0.8rem; color: #ff0000; height: 1.2rem; }
+        #reset-btn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            padding: 15px;
+            background: rgba(0,0,0,0.95);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            font-family: 'Courier New';
+            display: none;
+            cursor: pointer;
+            text-shadow: 0 0 5px var(--neon-cyan);
+        }
+    </style>
+</head>
+<body>
+    
+<div id="ui-layer">
+    <div>Azul-O's: Market Share</div>
+    <div id="status" class="status-msg">SIMULATING 'COOL' GAMEPLAY...</div>
+</div>
+
+<div id="game-container">
+    <img src="smokin.png" id="smokin-cat" alt="sass">
+    <button id="reset-btn" onclick="resetGame()">Scrub the Box (Restart)</button>
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const ROWS = 8; const COLS = 8;
+    const TILE_SIZE = Math.min(window.innerWidth / 8.5, 45);
+    canvas.width = COLS * TILE_SIZE;
+    canvas.height = ROWS * TILE_SIZE;
+
+    const CEREAL_TYPES = [
+        'winter_azulos.png', 'azulos_galaxy_mix.png', 'azulos_neon_crunch.png',
+        'azulo_blueberry_vanilla.jpg', 'azulos_glitch_cereal.png',
+        'summer_azulos.png', 'mochkil_puffs_orange.png', 'mochkil_puffs_dessert_edition.png'
+    ];
+    const MEGA_BURGER = 'mochkil-burger.png';
+    const LITTER_BOX_IMG = 'litter-box.png';
+
+    let grid = []; let images = {}; let firstSelection = null;
+    let poops = []; let audioStarted = false; let moveTimer;
+    let gameActive = true; const TIME_LIMIT = 7000;
+
+    const bgMusic = new Audio('hard-cyberpunk.mp3');
+    bgMusic.loop = true; bgMusic.volume = 0.5;
+
+    function preload() {
+        const allAssets = [...CEREAL_TYPES, MEGA_BURGER, LITTER_BOX_IMG, 'smokin.png'];
+        let loadedCount = 0;
+        allAssets.forEach(src => {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => {
+                loadedCount++;
+                if (loadedCount === allAssets.length) start();
+            };
+            images[src] = img;
+        });
+    }
+
+    function start() {
+        createCerealGrid();
+        resetStinkTimer();
+        draw();
+    }
+
+    function resetStinkTimer() {
+        if (!gameActive) return;
+        clearTimeout(moveTimer);
+        moveTimer = setTimeout(() => triggerLitterBoxFailure(), TIME_LIMIT);
+    }
+
+    function createCerealGrid() {
+        for (let r = 0; r < ROWS; r++) {
+            grid[r] = [];
+            for (let c = 0; c < COLS; c++) {
+                const type = CEREAL_TYPES[Math.floor(Math.random() * CEREAL_TYPES.length)];
+                grid[r][c] = { img: images[type], type: type, x: c * TILE_SIZE, y: r * TILE_SIZE };
+            }
+        }
+    }
+
+    function startAudio() {
+        if (!audioStarted) {
+            bgMusic.play().catch(() => {});
+            audioStarted = true;
+            document.getElementById('status').innerText = "SYSTEM ACTIVE: BUREAUCRACY IN PROGRESS";
+        }
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+        if (e.cancelable) e.preventDefault(); // KILL THE ZOOM
+        if (!gameActive) return;
+        startAudio();
+        const rect = canvas.getBoundingClientRect();
+        const col = Math.floor((e.touches[0].clientX - rect.left) / TILE_SIZE);
+        const row = Math.floor((e.touches[0].clientY - rect.top) / TILE_SIZE);
+        handleTileSelect(row, col);
+    }, { passive: false });
+
+    function handleTileSelect(r, c) {
+        if (!firstSelection) {
+            firstSelection = { r, c };
+        } else {
+            const dR = Math.abs(r - firstSelection.r);
+            const dC = Math.abs(c - firstSelection.c);
+            if ((dR === 1 && dC === 0) || (dR === 0 && dC === 1)) {
+                swapTiles(firstSelection.r, firstSelection.c, r, c);
+                checkMatches();
+                resetStinkTimer();
+            }
+            firstSelection = null;
+        }
+    }
+
+    function swapTiles(r1, c1, r2, c2) {
+        const temp = grid[r1][c1];
+        grid[r1][c1] = grid[r2][c2];
+        grid[r2][c2] = temp;
+        grid[r1][c1].x = c1 * TILE_SIZE; grid[r1][c1].y = r1 * TILE_SIZE;
+        grid[r2][c2].x = c2 * TILE_SIZE; grid[r2][c2].y = r2 * TILE_SIZE;
+    }
+
+    function checkMatches() {
+        let toRemove = new Set();
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS - 2; c++) {
+                if (grid[r][c].type === grid[r][c+1].type && grid[r][c].type === grid[r][c+2].type) {
+                    [0,1,2].forEach(i => toRemove.add(`${r},${c+i}`));
+                }
+            }
+        }
+        for (let c = 0; c < COLS; c++) {
+            for (let r = 0; r < ROWS - 2; r++) {
+                if (grid[r][c].type === grid[r+1][c].type && grid[r][c].type === grid[r+2][c].type) {
+                    [0,1,2].forEach(i => toRemove.add(`${r+i},${c}`));
+                }
+            }
+        }
+        if (toRemove.size > 0) processMatches(toRemove);
+    }
+
+    function processMatches(toRemove) {
+        toRemove.forEach(pos => {
+            const [r, c] = pos.split(',').map(Number);
+            grid[r][c] = null;
+        });
+        for (let c = 0; c < COLS; c++) {
+            let emptySlot = ROWS - 1;
+            for (let r = ROWS - 1; r >= 0; r--) {
+                if (grid[r][c] !== null) {
+                    grid[emptySlot][c] = grid[r][c];
+                    grid[emptySlot][c].y = emptySlot * TILE_SIZE;
+                    if (emptySlot !== r) grid[r][c] = null;
+                    emptySlot--;
+                }
+            }
+            for (let r = emptySlot; r >= 0; r--) {
+                const type = CEREAL_TYPES[Math.floor(Math.random() * CEREAL_TYPES.length)];
+                grid[r][c] = { img: images[type], type: type, x: c * TILE_SIZE, y: r * TILE_SIZE };
+            }
+        }
+    }
+
+    function triggerLitterBoxFailure() {
+        gameActive = false;
+        clearTimeout(moveTimer);
+        bgMusic.playbackRate = 0.5; 
+        document.getElementById('status').innerText = "CLEAN THE BOX: TICKET #404-POO";
+        document.getElementById('reset-btn').style.display = 'block';
+        for(let i = 0; i < 50; i++) {
+            poops.push({ 
+                x: Math.random() * canvas.width, 
+                y: -50 - Math.random() * 800, 
+                speed: 3 + Math.random() * 6, 
+                rot: Math.random() * 360 
+            });
+        }
+    }
+
+    function resetGame() {
+        gameActive = true; poops = []; bgMusic.playbackRate = 1.0;
+        document.getElementById('status').innerText = "SYSTEM ACTIVE";
+        document.getElementById('reset-btn').style.display = 'none';
+        createCerealGrid(); resetStinkTimer();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const tile = grid[r][c];
+                if (tile) {
+                    ctx.drawImage(tile.img, tile.x + 2, tile.y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                    if (firstSelection && firstSelection.r === r && firstSelection.c === c) {
+                        ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 3;
+                        ctx.strokeRect(tile.x+2, tile.y+2, TILE_SIZE-4, TILE_SIZE-4);
+                    }
+                }
+            }
+        }
+        ctx.font = "28px Arial";
+        poops.forEach(p => {
+            p.y += p.speed; ctx.save(); ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot * Math.PI / 180); ctx.fillText("💩", 0, 0); ctx.restore();
+        });
+        if (!gameActive) {
+            ctx.drawImage(images[LITTER_BOX_IMG], (canvas.width/2) - 50, 20, 100, 80);
+            ctx.fillStyle = "#00ffff"; ctx.font = "12px 'Courier New'";
+            ctx.fillText("MAINTENANCE REQUIRED", canvas.width/2 - 65, 120);
+            ctx.fillText("SUBMIT TICKET #404-POO", canvas.width/2 - 70, 140);
+        }
+        requestAnimationFrame(draw);
+    }
+    preload();
+</script>
+</body>
+</html>
