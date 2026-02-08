@@ -1,6 +1,7 @@
 {
-  "name": "Azul-O's: Market Share",
-  "short_name": "AzulOs",
+  "name": "Maximum Reality: Match Module",
+  "short_name": "MatchModule",
+  "description": "The official Bureaucracy Grind for Azul-O's Market Share.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
@@ -9,6 +10,12 @@
     {
       "src": "favicon.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
