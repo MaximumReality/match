@@ -1,13 +1,34 @@
 
-const cerealAssets = [
-  'winter_azulos.png',
-  'azulos_galaxy_mix.png',
-  'azulos_neon_crunch.png',
-  'azulo_blueberry_vanilla.jpg',
-  'azulos_glitch_cereal.png',
-  'azulo-bars.png',
-  'summer_azulos.png'
+const CEREAL_TYPES = [
+    'winter_azulos.png',
+    'azulos_galaxy_mix.png',
+    'azulos_neon_crunch.png',
+    'azulo_blueberry_vanilla.jpg',
+    'azulos_glitch_cereal.png',
+    'summer_azulos.png',
+    'mochkil_puffs_orange.png',
+    'mochkil_puffs_dessert_edition.png'
 ];
+
+// The Special Item
+const MEGA_BURGER = 'mochkil-burger.png';
+
+class CerealBox {
+    constructor(r, c, type) {
+        this.r = r;
+        this.c = c;
+        this.type = type; // The filename
+        this.isBurger = false;
+        this.isFalling = true;
+    }
+
+    // If they match 5 in a row, it mutates into the optimized burger
+    transformToBurger() {
+        this.type = MEGA_BURGER;
+        this.isBurger = true;
+        // Add a glow effect in the CSS/Canvas
+    }
+}
 
 // Create the 8x8 Grid for the "Dumbass" Match-3
 function createCerealGrid() {
