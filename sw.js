@@ -1,4 +1,4 @@
-const CACHE_NAME = 'azulos-v1.4'; // Version bump for the full folder sync
+const CACHE_NAME = 'azulos-v1.5'; // Version bump for the full folder sync
 const ASSETS = [
   'index.html',
   'manifest.json',
@@ -9,8 +9,9 @@ const ASSETS = [
   'mochkil-living.png',
   'mochkil-burger.png',
   'smokin.png',
+  'poo-rule.png',
   'litter-box.png',
-  'azulo-bars.png',           // Added from folder list
+  'azulo-bars.png', // Added from folder list
   'og-matchmodule.png',       // Added from folder list
   'winter_azulos.png',
   'summer_azulos.png',
