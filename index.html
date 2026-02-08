@@ -1,50 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Azul-O's: The Bureaucracy Grind</title>
+    <style>
+        :root {
+            --neon-pink: #ff00ff;
+            --neon-cyan: #00ffff;
+        }
+        body {
+            margin: 0;
+            background: #0a0a0a;
+            color: var(--neon-cyan);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        /* CRT Scanline Overlay */
+        #crt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        #game-container {
+            position: relative;
+            border: 2px solid var(--neon-pink);
+            box-shadow: 0 0 15px var(--neon-pink);
+        }
+        canvas {
+            display: block;
+            background: #111;
+            touch-action: none; /* Prevents scrolling while playing */
+        }
+        #ui-layer {
+            text-align: center;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px var(--neon-cyan);
+        }
+        .status-msg { font-size: 0.8rem; color: #ff0000; }
+    </style>
+</head>
+<body>
 
-const CEREAL_TYPES = [
-    'winter_azulos.png',
-    'azulos_galaxy_mix.png',
-    'azulos_neon_crunch.png',
-    'azulo_blueberry_vanilla.jpg',
-    'azulos_glitch_cereal.png',
-    'summer_azulos.png',
-    'mochkil_puffs_orange.png',
-    'mochkil_puffs_dessert_edition.png'
-];
+<div id="crt-overlay"></div>
 
-// The Special Item
-const MEGA_BURGER = 'mochkil-burger.png';
+<div id="ui-layer">
+    <div>Azul-O's: Market Share</div>
+    <div id="status" class="status-msg">SIMULATING 'COOL' GAMEPLAY...</div>
+</div>
 
-class CerealBox {
-    constructor(r, c, type) {
-        this.r = r;
-        this.c = c;
-        this.type = type; // The filename
-        this.isBurger = false;
-        this.isFalling = true;
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // iPhone 14 Pro Max responsive grid sizing
+    const ROWS = 8;
+    const COLS = 8;
+    const TILE_SIZE = Math.min(window.innerWidth / 8.5, 45);
+    canvas.width = COLS * TILE_SIZE;
+    canvas.height = ROWS * TILE_SIZE;
+
+    const CEREAL_TYPES = [
+        'winter_azulos.png',
+        'azulos_galaxy_mix.png',
+        'azulos_neon_crunch.png',
+        'azulo_blueberry_vanilla.jpg',
+        'azulos_glitch_cereal.png',
+        'summer_azulos.png',
+        'mochkil_puffs_orange.png',
+        'mochkil_puffs_dessert_edition.png'
+    ];
+    
+    const MEGA_BURGER = 'mochkil-burger.png';
+    let grid = [];
+    let images = {};
+
+    // Preload images to prevent flickering
+    let loadedCount = 0;
+    const allAssets = [...CEREAL_TYPES, MEGA_BURGER];
+
+    function preload() {
+        allAssets.forEach(src => {
+            const img = new Image();
+            img.src = src; // Assuming they are in the same folder as index.html
+            img.onload = () => {
+                loadedCount++;
+                if (loadedCount === allAssets.length) start();
+            };
+            images[src] = img;
+        });
     }
 
-    // If they match 5 in a row, it mutates into the optimized burger
-    transformToBurger() {
-        this.type = MEGA_BURGER;
-        this.isBurger = true;
-        // Add a glow effect in the CSS/Canvas
+    function start() {
+        createCerealGrid();
+        draw();
     }
-}
 
-// Create the 8x8 Grid for the "Dumbass" Match-3
-function createCerealGrid() {
-  for (let r = 0; r < 8; r++) {
-    grid[r] = [];
-    for (let c = 0; c < 8; c++) {
-      // Pick a random cereal box from your GitHub assets
-      const randomBox = cerealAssets[Math.floor(Math.random() * cerealAssets.length)];
-      grid[r][c] = { img: randomBox, x: c * TILE_SIZE, y: r * TILE_SIZE };
+    function createCerealGrid() {
+        for (let r = 0; r < ROWS; r++) {
+            grid[r] = [];
+            for (let c = 0; c < COLS; c++) {
+                const randomBox = CEREAL_TYPES[Math.floor(Math.random() * CEREAL_TYPES.length)];
+                grid[r][c] = { 
+                    img: images[randomBox], 
+                    x: c * TILE_SIZE, 
+                    y: r * TILE_SIZE,
+                    type: randomBox 
+                };
+            }
+        }
     }
-  }
-}
 
-// The "Failure" Trigger
-function checkGameOver() {
-    if (noMovesLeft) {
-        triggerLitterBoxShake(); // 💩 Time
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw Grid
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const tile = grid[r][c];
+                ctx.drawImage(tile.img, tile.x + 2, tile.y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                
+                // Neon Grid Lines
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+                ctx.strokeRect(tile.x, tile.y, TILE_SIZE, TILE_SIZE);
+            }
+        }
+        requestAnimationFrame(draw);
     }
-}
+
+    // Your Spite Logic Trigger
+    function triggerLitterBoxShake() {
+        document.getElementById('status').innerText = "SYSTEM CLOGGED: 💩 DROPPING";
+        // Shake logic and poop particle logic goes here
+    }
+
+    preload();
+</script>
+</body>
+</html>
