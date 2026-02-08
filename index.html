@@ -271,18 +271,18 @@ function togglePlay() {
     function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // 1. Draw the Grid (Always draw this so the game doesn't disappear)
+    // 1. Draw Grid
     for(let r=0; r<ROWS; r++) {
         for(let c=0; c<COLS; c++) {
             if(grid[r][c]) ctx.drawImage(grid[r][c].img, grid[r][c].x+2, grid[r][c].y+2, TILE_SIZE-4, TILE_SIZE-4);
         }
     }
 
-    // 2. Only move the Poops if NOT paused
+    // 2. The Poop: Freeze movement but keep rendering
     ctx.font = "30px Arial";
     poops.forEach(p => {
-        if (!isPaused) { // <--- THE FIX: Only update Y position if game is running
-            p.y += p.speed;
+        if (!isPaused) { 
+            p.y += p.speed; // Gravity only works when NOT paused
         }
         ctx.save();
         ctx.translate(p.x, p.y);
@@ -291,15 +291,17 @@ function togglePlay() {
         ctx.restore();
     });
 
-    // 3. Draw Overlays
-    if(!gameActive && !isPaused) { // Only show failure state if not paused
+    // 3. The Overlays: Show them if game is NOT active, regardless of pause
+    if(!gameActive) { 
         ctx.drawImage(images[LITTER_BOX_IMG], canvas.width/2-50, 40, 100, 80);
         ctx.fillStyle = "#00ffff"; ctx.font = "12px 'Courier New'";
         ctx.fillText("MAINTENANCE REQUIRED", canvas.width/2-65, 140);
+        ctx.fillText("SUBMIT TICKET #404-POO", canvas.width/2-70, 160);
     }
 
     requestAnimationFrame(draw);
 }
+
 
     preload();
 </script>
