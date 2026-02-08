@@ -109,9 +109,18 @@
 
 <div id="ui-layer">
     <img src="smokin.png" id="smokin-cat">
-    <div>MAXIMUM REALITY: Match Module</div>
+    <div>Azul-O's: Market Share</div>
+    <div style="font-size: 1.2rem; font-weight: bold; color: var(--neon-cyan);">
+        SHARE: <span id="score-val">0</span>%
+    </div>
     <div id="status" class="status-msg">DRAG TO MERGE CORPORATIONS...</div>
 </div>
+
+<div style="display: flex; justify-content: space-around; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem;">
+    <div>SHARE: <span id="score-val" style="color: var(--neon-cyan);">0</span>%</div>
+    <div style="color: var(--neon-pink);">RECORD: <span id="high-score-val">0</span>%</div>
+</div>
+
 
 <div id="game-container">
     <button id="reset-btn" onclick="resetGame()">Scrub the Box (Restart)</button>
@@ -144,8 +153,14 @@
     let dragStart = null; let audioStarted = false; 
     let gameActive = true; let isPaused = false; let isMuted = false;
     let moveTimer; const TIME_LIMIT = 7000;
+    
+    // SCORING SYSTEM
+    let score = 0;
+    let highScore = localStorage.getItem('azulos_high_score') || 0;
 
     function preload() {
+        // Show high score immediately on load
+        document.getElementById('high-score-val').innerText = highScore;
         const assets = [...CEREAL_TYPES, LITTER_BOX_IMG, 'smokin.png', 'corporate-azul.png', 'mochkil-skate.png', 'mochkil-living.png'];
         let loaded = 0;
         assets.forEach(src => {
@@ -239,6 +254,9 @@
     }
 
     function processMatches(toRemove) {
+        // Update score based on boxes removed
+        updateScore(toRemove.size);
+        
         toRemove.forEach(pos => { const [r,c] = pos.split(',').map(Number); grid[r][c] = null; });
         for(let c=0; c<COLS; c++) {
             let empty = ROWS-1;
@@ -249,6 +267,29 @@
                 const type = CEREAL_TYPES[Math.floor(Math.random()*CEREAL_TYPES.length)];
                 grid[r][c] = { img: images[type], type, x: c*TILE_SIZE, y: r*TILE_SIZE };
             }
+        }
+    }
+
+    function updateScore(points) {
+        score += points;
+        document.getElementById('score-val').innerText = score;
+
+        // Visual bounce
+        const scoreDisplay = document.getElementById('score-val');
+        scoreDisplay.style.color = 'var(--neon-pink)';
+        setTimeout(() => { scoreDisplay.style.color = 'var(--neon-cyan)'; }, 200);
+
+        // Record Check
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('azulos_high_score', highScore);
+            document.getElementById('high-score-val').innerText = highScore;
+        }
+
+        // Quarter Bonus Logic
+        if (score > 0 && score % 50 === 0) {
+            resetStinkTimer(); 
+            document.getElementById('status').innerText = "QUARTERLY BONUS: +7s";
         }
     }
 
@@ -276,6 +317,8 @@
     }
 
     function resetGame() {
+        score = 0;
+        document.getElementById('score-val').innerText = score;
         gameActive = true; poops = []; bgMusic.playbackRate = 1.0;
         document.getElementById('reset-btn').style.display = 'none';
         document.getElementById('status').innerText = "DRAG TO MERGE CORPORATIONS...";
@@ -306,5 +349,6 @@
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
     preload();
 </script>
+
 </body>
 </html>
