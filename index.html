@@ -92,34 +92,59 @@
     }
 
     // --- SWIPE LOGIC ---
+        // --- HIGH-SENSITIVITY SWIPE LOGIC ---
     canvas.addEventListener('touchstart', (e) => {
+        if (e.cancelable) e.preventDefault(); 
         if (!gameActive) return;
         if (!audioStarted) { bgMusic.play(); audioStarted = true; }
+        
         const rect = canvas.getBoundingClientRect();
         const touch = e.touches[0];
+        
+        // Lock in the starting point
         dragStart = {
             col: Math.floor((touch.clientX - rect.left) / TILE_SIZE),
-            row: Math.floor((touch.clientY - rect.top) / TILE_SIZE)
+            row: Math.floor((touch.clientY - rect.top) / TILE_SIZE),
+            x: touch.clientX,
+            y: touch.clientY
         };
     }, { passive: false });
 
-    canvas.addEventListener('touchend', (e) => {
+    canvas.addEventListener('touchmove', (e) => {
+        if (e.cancelable) e.preventDefault();
         if (!gameActive || !dragStart) return;
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.changedTouches[0];
-        const endCol = Math.floor((touch.clientX - rect.left) / TILE_SIZE);
-        const endRow = Math.floor((touch.clientY - rect.top) / TILE_SIZE);
 
-        const dR = Math.abs(endRow - dragStart.row);
-        const dC = Math.abs(endCol - dragStart.col);
+        const touch = e.touches[0];
+        const distOpen = 15; // SENSITIVITY: Lower = faster reaction
+        
+        const deltaX = touch.clientX - dragStart.x;
+        const deltaY = touch.clientY - dragStart.y;
 
-        if ((dR === 1 && dC === 0) || (dR === 0 && dC === 1)) {
-            swapTiles(dragStart.row, dragStart.col, endRow, endCol);
-            checkMatches();
-            resetStinkTimer();
+        let targetRow = dragStart.row;
+        let targetCol = dragStart.col;
+
+        // Detect direction immediately once threshold is hit
+        if (Math.abs(deltaX) > distOpen || Math.abs(deltaY) > distOpen) {
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                targetCol = deltaX > 0 ? dragStart.col + 1 : dragStart.col - 1;
+            } else {
+                targetRow = deltaY > 0 ? dragStart.row + 1 : dragStart.row - 1;
+            }
+
+            // Boundary Check
+            if (targetRow >= 0 && targetRow < ROWS && targetCol >= 0 && targetCol < COLS) {
+                swapTiles(dragStart.row, dragStart.col, targetRow, targetCol);
+                checkMatches();
+                resetStinkTimer();
+                dragStart = null; // Kill the drag so it only swaps once per flick
+            }
         }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', () => {
         dragStart = null;
     }, { passive: false });
+
 
     function swapTiles(r1, c1, r2, c2) {
         let temp = grid[r1][c1];
