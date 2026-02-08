@@ -222,11 +222,26 @@
         }
     }
 
-    function triggerLitterBoxFailure() {
-        gameActive = false;
-        clearTimeout(moveTimer);
-        bgMusic.playbackRate = 0.5; 
-        document.getElementById('status').innerText = "SYSTEM CLOGGED: CLEAN THE BOX";
+    function resetGame() {
+    gameActive = true;
+    poops = [];
+    bgMusic.playbackRate = 1.0;
+    document.getElementById('status').innerText = "SYSTEM ACTIVE: BUREAUCRACY IN PROGRESS";
+    document.getElementById('reset-btn').style.display = 'none';
+    createCerealGrid();
+    resetStinkTimer();
+}
+
+// Update your triggerLitterBoxFailure to show the button:
+function triggerLitterBoxFailure() {
+    gameActive = false;
+    clearTimeout(moveTimer);
+    bgMusic.playbackRate = 0.5; 
+    document.getElementById('status').innerText = "SYSTEM CLOGGED: CLEAN THE BOX";
+    document.getElementById('reset-btn').style.display = 'inline-block'; // Show the button
+    // ... rest of poop rain logic
+}
+
         for(let i = 0; i < 50; i++) {
             poops.push({ 
                 x: Math.random() * canvas.width, 
