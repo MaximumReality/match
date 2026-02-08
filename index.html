@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<<head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <title>MAXIMUM REALITY: Match Module</title>
 
-    <!-- Favicon / Home Screen -->
     <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
     <link rel="manifest" href="manifest.json">
@@ -14,36 +13,14 @@
     <meta name="apple-mobile-web-app-title" content="MatchModule">
     <meta name="application-name" content="Match Module">
     <meta name="theme-color" content="#ff00ff">
-    <meta name="robots" content="index, follow">
 
-    <!-- SEO / Description -->
-    <meta name="description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine. Drag. Merge. Maintain the litter box. Welcome to Maximum Reality.">
+    <meta name="description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine. Drag. Merge. Maintain the litter box.">
 
-    <!-- Open Graph / Facebook / WhatsApp -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://maximumreality.github.io/match/">
-    <meta property="og:title" content="MAXIMUM REALITY: Match Module">
-    <meta property="og:description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine. Drag. Merge. Maintain the litter box.">
-    <meta property="og:image" content="https://maximumreality.github.io/match/og-matchmodule.png">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="MAXIMUM REALITY: Match Module">
-    <meta name="twitter:description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine.">
-    <meta name="twitter:image" content="https://maximumreality.github.io/match/og-matchmodule.png">
-
-    <!-- Styles (keep your UI, buttons, animations, keyframes) -->
     <style>
         :root { --neon-pink: #ff00ff; --neon-cyan: #00ffff; }
         body {
-            margin: 0; 
-            background: #0a0a0a; 
-            color: var(--neon-cyan);
-            font-family: 'Courier New', monospace; 
-            overflow: hidden;
+            margin: 0; background: #0a0a0a; color: var(--neon-cyan);
+            font-family: 'Courier New', monospace; overflow: hidden;
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             height: 100vh; touch-action: none; -webkit-user-select: none;
         }
@@ -69,7 +46,7 @@
             width: 90px; z-index: 100; filter: drop-shadow(0 0 5px var(--neon-pink));
         }
         canvas { display: block; background: #111; }
-        .status-msg { font-size: 0.7rem; color: #ff0000; text-transform: uppercase; height: 1.2rem; }
+        .status-msg { font-size: 0.7rem; color: #ff0000; text-transform: uppercase; height: 1.2rem; margin-top: 5px;}
 
         /* Control Deck */
         #control-deck {
@@ -81,15 +58,13 @@
         .deck-icon:active { transform: scale(1.2); }
         #home-link { text-decoration: none; color: inherit; }
 
-        /* Reset Button */
         #reset-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             z-index: 200; padding: 20px; background: rgba(0,0,0,0.95);
             border: 2px solid var(--neon-cyan); color: var(--neon-cyan);
-            font-family: 'Courier New'; display: none;
+            font-family: 'Courier New'; display: none; cursor: pointer;
         }
 
-        /* Animations */
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
     </style>
 </head>
@@ -109,18 +84,15 @@
 
 <div id="ui-layer">
     <img src="smokin.png" id="smokin-cat">
-    <div>Azul-O's: Market Share</div>
-    <div style="font-size: 1.2rem; font-weight: bold; color: var(--neon-cyan);">
-        SHARE: <span id="score-val">0</span>%
+    <div style="font-size: 0.8rem; letter-spacing: 2px;">AZUL-O'S: MARKET SHARE</div>
+    
+    <div style="display: flex; justify-content: space-around; font-weight: bold; margin: 10px 0; font-size: 1.1rem;">
+        <div>SHARE: <span id="score-val" style="color: var(--neon-cyan);">0</span>%</div>
+        <div style="color: var(--neon-pink);">RECORD: <span id="high-score-val">0</span>%</div>
     </div>
+    
     <div id="status" class="status-msg">DRAG TO MERGE CORPORATIONS...</div>
 </div>
-
-<div style="display: flex; justify-content: space-around; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem;">
-    <div>SHARE: <span id="score-val" style="color: var(--neon-cyan);">0</span>%</div>
-    <div style="color: var(--neon-pink);">RECORD: <span id="high-score-val">0</span>%</div>
-</div>
-
 
 <div id="game-container">
     <button id="reset-btn" onclick="resetGame()">Scrub the Box (Restart)</button>
@@ -154,12 +126,10 @@
     let gameActive = true; let isPaused = false; let isMuted = false;
     let moveTimer; const TIME_LIMIT = 7000;
     
-    // SCORING SYSTEM
     let score = 0;
     let highScore = localStorage.getItem('azulos_high_score') || 0;
 
     function preload() {
-        // Show high score immediately on load
         document.getElementById('high-score-val').innerText = highScore;
         const assets = [...CEREAL_TYPES, LITTER_BOX_IMG, 'smokin.png', 'corporate-azul.png', 'mochkil-skate.png', 'mochkil-living.png'];
         let loaded = 0;
@@ -190,7 +160,6 @@
         }
     }
 
-    // --- SWIPE LOGIC ---
     canvas.addEventListener('touchstart', (e) => {
         if (e.cancelable) e.preventDefault();
         if (!gameActive || isPaused) return;
@@ -254,9 +223,7 @@
     }
 
     function processMatches(toRemove) {
-        // Update score based on boxes removed
         updateScore(toRemove.size);
-        
         toRemove.forEach(pos => { const [r,c] = pos.split(',').map(Number); grid[r][c] = null; });
         for(let c=0; c<COLS; c++) {
             let empty = ROWS-1;
@@ -273,20 +240,16 @@
     function updateScore(points) {
         score += points;
         document.getElementById('score-val').innerText = score;
-
-        // Visual bounce
         const scoreDisplay = document.getElementById('score-val');
         scoreDisplay.style.color = 'var(--neon-pink)';
         setTimeout(() => { scoreDisplay.style.color = 'var(--neon-cyan)'; }, 200);
 
-        // Record Check
         if (score > highScore) {
             highScore = score;
             localStorage.setItem('azulos_high_score', highScore);
             document.getElementById('high-score-val').innerText = highScore;
         }
 
-        // Quarter Bonus Logic
         if (score > 0 && score % 50 === 0) {
             resetStinkTimer(); 
             document.getElementById('status').innerText = "QUARTERLY BONUS: +7s";
@@ -349,6 +312,5 @@
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
     preload();
 </script>
-
 </body>
 </html>
