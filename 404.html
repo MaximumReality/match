@@ -2,22 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>404 — Reality Not Found</title>
+  <title>404 — Module Not Loaded</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0f1a">
 
-  <!-- Favicon / iOS -->
-  <link rel="icon" href="/favicon.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+  <!-- Match Module identity -->
+  <link rel="icon" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
 
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      background: radial-gradient(circle at top, #121a33, #05070f);
-      color: #e8ecff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0f172a, #05070f);
+      color: #d6ecff;
+      font-family: 'Courier New', monospace;
     }
 
     .wrap {
@@ -25,61 +25,58 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      text-align: center;
       padding: 2rem;
+      text-align: center;
     }
 
     .panel {
       max-width: 520px;
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 16px;
       padding: 2.5rem 2rem;
-      background: linear-gradient(
-        180deg,
-        rgba(255,255,255,0.06),
-        rgba(255,255,255,0.02)
-      );
-      box-shadow: 0 0 40px rgba(120,140,255,0.15);
+      border: 2px solid #ff00ff;
+      box-shadow: 0 0 30px #ff00ff55;
+      background: rgba(0,0,0,0.75);
     }
 
     h1 {
-      font-size: 3.5rem;
+      font-size: 3.2rem;
       margin: 0;
+      color: #00ffff;
       letter-spacing: 0.15em;
-      color: #9aa8ff;
+      text-shadow: 0 0 10px #00ffff;
     }
 
     h2 {
-      margin: 1rem 0 0.5rem;
-      font-weight: 600;
+      margin-top: 1rem;
+      font-weight: normal;
+      color: #ff66ff;
     }
 
     p {
-      opacity: 0.85;
-      line-height: 1.5;
-    }
-
-    .glitch {
-      font-family: monospace;
       font-size: 0.9rem;
-      opacity: 0.6;
-      margin-top: 1rem;
+      line-height: 1.6;
+      opacity: 0.85;
     }
 
-    a.button {
+    .error-code {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: #ff4444;
+    }
+
+    .button {
       display: inline-block;
       margin-top: 2rem;
-      padding: 0.75rem 1.5rem;
+      padding: 0.7rem 1.4rem;
       border-radius: 999px;
       text-decoration: none;
-      color: #0b0f1a;
-      background: linear-gradient(90deg, #8efcff, #9aa8ff);
-      font-weight: 600;
-      box-shadow: 0 0 20px rgba(154,168,255,0.5);
+      color: #000;
+      background: linear-gradient(90deg, #00ffff, #ff00ff);
+      font-weight: bold;
+      box-shadow: 0 0 20px #ff00ff88;
     }
 
-    a.button:hover {
-      filter: brightness(1.1);
+    .button:hover {
+      filter: brightness(1.15);
     }
   </style>
 </head>
@@ -87,18 +84,24 @@
   <div class="wrap">
     <div class="panel">
       <h1>404</h1>
-      <h2>Reality Not Found</h2>
+      <h2>Match Module Not Found</h2>
+
       <p>
-        You followed a path that doesn’t exist in this universe.<br>
-        Azul may have knocked something into a wormhole.
+        You’ve accessed a path that isn’t registered in the
+        <strong>Azul-O’s Corporate Match System</strong>.
       </p>
 
-      <div class="glitch">
-        ERR_MODULE_MISSING // MAXIMUM REALITY
+      <p>
+        This module may have been deprecated, merged,
+        or knocked off the board by Mochkil.
+      </p>
+
+      <div class="error-code">
+        ERROR: MM-404-CEREAL-MISALIGNMENT
       </div>
 
-      <a class="button" href="/">
-        Return to Known Reality
+      <a class="button" href="./">
+        Return to Match Module
       </a>
     </div>
   </div>
