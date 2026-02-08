@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Azul-O's: The Bureaucracy Grind</title>
+    <title>Azul-O's: Market Share</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <style>
         :root { --neon-pink: #ff00ff; --neon-cyan: #00ffff; }
         body {
@@ -16,6 +15,18 @@
             justify-content: center; height: 100vh;
             touch-action: none; -webkit-user-select: none;
         }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 1000; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; transition: opacity 0.5s;
+        }
+        .glitch-text { font-size: 1.5rem; margin: 10px; text-shadow: 2px 2px var(--neon-pink); }
+        .splash-cast { position: absolute; width: 100px; filter: drop-shadow(0 0 5px var(--neon-pink)); }
+
+        /* --- GAME UI --- */
         #ui-layer { text-align: center; margin-bottom: 5px; width: 100%; position: relative; }
         #game-container {
             position: relative; border: 4px solid var(--neon-pink);
@@ -26,47 +37,41 @@
             width: 90px; z-index: 100; filter: drop-shadow(0 0 5px var(--neon-pink));
         }
         canvas { display: block; background: #111; }
-        .status-msg { font-size: 0.7rem; color: #ff0000; text-transform: uppercase; }
+        .status-msg { font-size: 0.7rem; color: #ff0000; text-transform: uppercase; height: 1.2rem; }
+
+        /* --- CONTROL DECK --- */
+        #control-deck {
+            margin-top: 15px; display: flex; gap: 25px; align-items: center;
+            background: rgba(255, 0, 255, 0.1); padding: 10px 30px;
+            border-radius: 50px; border: 1px solid var(--neon-pink);
+        }
+        .deck-icon { font-size: 1.5rem; cursor: pointer; transition: transform 0.2s; }
+        .deck-icon:active { transform: scale(1.2); }
+        #home-link { text-decoration: none; color: inherit; }
+
         #reset-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 200; padding: 20px; background: rgba(0,0,0,0.9);
+            z-index: 200; padding: 20px; background: rgba(0,0,0,0.95);
             border: 2px solid var(--neon-cyan); color: var(--neon-cyan);
-            font-family: 'Courier New'; display: none; cursor: pointer;
+            font-family: 'Courier New'; display: none;
         }
-        #control-deck {
-    margin-top: 15px;
-    display: flex;
-    gap: 25px;
-    align-items: center;
-    background: rgba(255, 0, 255, 0.1);
-    padding: 10px 30px;
-    border-radius: 50px;
-    border: 1px solid var(--neon-pink);
-    box-shadow: 0 0 10px rgba(255, 0, 255, 0.2);
-    z-index: 150;
-}
 
-.deck-icon {
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: transform 0.2s, filter 0.2s;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.deck-icon:active {
-    transform: scale(1.2);
-    filter: drop-shadow(0 0 8px var(--neon-cyan));
-}
-
-#home-link {
-    text-decoration: none;
-    color: inherit;
-}
-
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
 <body>
+
+<div id="splash-screen" onclick="dismissSplash()">
+    <img src="mochkil-skate.png" style="width: 140px; margin-bottom: 20px;">
+    <div class="glitch-text">MAXIMUM REALITY MATCH</div>
+    <div style="font-size: 0.8rem; color: var(--neon-cyan); max-width: 80%;">
+        *Optimizing High-Octane Boredom*<br>
+        *Syncing Mochkil's Chaos Engine*
+    </div>
+    <img src="corporate-azul.png" class="splash-cast" style="bottom: 20px; left: 20px;">
+    <img src="mochkil-living.png" class="splash-cast" style="bottom: 20px; right: 20px;">
+    <div style="margin-top: 40px; animation: blink 1s infinite;">[ TAP TO SYNC REALITY ]</div>
+</div>
 
 <div id="ui-layer">
     <img src="smokin.png" id="smokin-cat">
@@ -78,55 +83,19 @@
     <button id="reset-btn" onclick="resetGame()">Scrub the Box (Restart)</button>
     <canvas id="gameCanvas"></canvas>
 </div>
-    <div id="control-deck">
+
+<div id="control-deck">
     <span id="mute-btn" class="deck-icon" onclick="toggleMute()">🔊</span>
     <span id="play-pause-btn" class="deck-icon" onclick="togglePlay()">⏯️</span>
     <a href="https://maximumreality.xyz" id="home-link" class="deck-icon">🏡</a>
 </div>
 
-
 <script>
-    let isMuted = false;
-let isPaused = false;
-
-function toggleMute() {
-    isMuted = !isMuted;
-    bgMusic.muted = isMuted;
-    document.getElementById('mute-btn').innerText = isMuted ? "🔇" : "🔊";
-}
-
-function togglePlay() {
-    if (!audioStarted) {
-        startAudio();
-        return;
-    }
-    isPaused = !isPaused;
-    
-    if (isPaused) {
-        bgMusic.pause();
-        clearTimeout(moveTimer); // Stop the countdown
-        document.getElementById('status').innerText = "SYSTEM PAUSED";
-    } else {
-        bgMusic.play();
-        // Only restart the timer if the game hasn't already failed
-        if (gameActive) {
-            resetStinkTimer();
-            document.getElementById('status').innerText = "DRAG TO MERGE CORPORATIONS...";
-        } else {
-            document.getElementById('status').innerText = "CLEAN THE BOX: TICKET #404-POO";
-        }
-    }
-}
-
-
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    
-    // 6x6 Grid for larger, crisper assets
     const ROWS = 6; const COLS = 6;
     const TILE_SIZE = Math.min(window.innerWidth / 6.5, 60); 
-    canvas.width = COLS * TILE_SIZE;
-    canvas.height = ROWS * TILE_SIZE;
+    canvas.width = COLS * TILE_SIZE; canvas.height = ROWS * TILE_SIZE;
 
     const CEREAL_TYPES = [
         'winter_azulos.png', 'azulos_galaxy_mix.png', 'azulos_neon_crunch.png',
@@ -134,16 +103,16 @@ function togglePlay() {
         'summer_azulos.png', 'mochkil_puffs_orange.png', 'mochkil_puffs_dessert_edition.png'
     ];
     const LITTER_BOX_IMG = 'litter-box.png';
-
-    let grid = []; let images = {}; let poops = [];
-    let dragStart = null; let audioStarted = false; let gameActive = true;
-    let moveTimer; const TIME_LIMIT = 7000;
-
     const bgMusic = new Audio('hard-cyberpunk.mp3');
     bgMusic.loop = true; bgMusic.volume = 0.5;
 
+    let grid = []; let images = {}; let poops = [];
+    let dragStart = null; let audioStarted = false; 
+    let gameActive = true; let isPaused = false; let isMuted = false;
+    let moveTimer; const TIME_LIMIT = 7000;
+
     function preload() {
-        const assets = [...CEREAL_TYPES, LITTER_BOX_IMG, 'smokin.png', 'mochkil-burger.png'];
+        const assets = [...CEREAL_TYPES, LITTER_BOX_IMG, 'smokin.png', 'corporate-azul.png', 'mochkil-skate.png', 'mochkil-living.png'];
         let loaded = 0;
         assets.forEach(src => {
             const img = new Image(); img.src = src;
@@ -153,6 +122,14 @@ function togglePlay() {
     }
 
     function start() { createCerealGrid(); resetStinkTimer(); draw(); }
+
+    function dismissSplash() {
+        document.getElementById('splash-screen').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('splash-screen').style.display = 'none';
+            if (!audioStarted) { bgMusic.play(); audioStarted = true; }
+        }, 500);
+    }
 
     function createCerealGrid() {
         for (let r = 0; r < ROWS; r++) {
@@ -165,59 +142,42 @@ function togglePlay() {
     }
 
     // --- SWIPE LOGIC ---
-        // --- HIGH-SENSITIVITY SWIPE LOGIC ---
     canvas.addEventListener('touchstart', (e) => {
-        if (e.cancelable) e.preventDefault(); 
-        if (!gameActive) return;
-        if (!audioStarted) { bgMusic.play(); audioStarted = true; }
-        
+        if (e.cancelable) e.preventDefault();
+        if (!gameActive || isPaused) return;
         const rect = canvas.getBoundingClientRect();
         const touch = e.touches[0];
-        
-        // Lock in the starting point
         dragStart = {
             col: Math.floor((touch.clientX - rect.left) / TILE_SIZE),
             row: Math.floor((touch.clientY - rect.top) / TILE_SIZE),
-            x: touch.clientX,
-            y: touch.clientY
+            x: touch.clientX, y: touch.clientY
         };
     }, { passive: false });
 
     canvas.addEventListener('touchmove', (e) => {
         if (e.cancelable) e.preventDefault();
-        if (!gameActive || !dragStart) return;
-
+        if (!gameActive || !dragStart || isPaused) return;
         const touch = e.touches[0];
-        const distOpen = 15; // SENSITIVITY: Lower = faster reaction
-        
+        const distOpen = 15;
         const deltaX = touch.clientX - dragStart.x;
         const deltaY = touch.clientY - dragStart.y;
-
         let targetRow = dragStart.row;
         let targetCol = dragStart.col;
 
-        // Detect direction immediately once threshold is hit
         if (Math.abs(deltaX) > distOpen || Math.abs(deltaY) > distOpen) {
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 targetCol = deltaX > 0 ? dragStart.col + 1 : dragStart.col - 1;
             } else {
                 targetRow = deltaY > 0 ? dragStart.row + 1 : dragStart.row - 1;
             }
-
-            // Boundary Check
             if (targetRow >= 0 && targetRow < ROWS && targetCol >= 0 && targetCol < COLS) {
                 swapTiles(dragStart.row, dragStart.col, targetRow, targetCol);
                 checkMatches();
                 resetStinkTimer();
-                dragStart = null; // Kill the drag so it only swaps once per flick
+                dragStart = null;
             }
         }
     }, { passive: false });
-
-    canvas.addEventListener('touchend', () => {
-        dragStart = null;
-    }, { passive: false });
-
 
     function swapTiles(r1, c1, r2, c2) {
         let temp = grid[r1][c1];
@@ -258,14 +218,25 @@ function togglePlay() {
         }
     }
 
+    function toggleMute() {
+        isMuted = !isMuted; bgMusic.muted = isMuted;
+        document.getElementById('mute-btn').innerText = isMuted ? "🔇" : "🔊";
+    }
+
+    function togglePlay() {
+        isPaused = !isPaused;
+        if (isPaused) { bgMusic.pause(); clearTimeout(moveTimer); document.getElementById('status').innerText = "SYSTEM PAUSED"; }
+        else { bgMusic.play(); if(gameActive) { resetStinkTimer(); document.getElementById('status').innerText = "DRAG TO MERGE CORPORATIONS..."; } }
+    }
+
     function resetStinkTimer() {
         clearTimeout(moveTimer);
-        if(gameActive) moveTimer = setTimeout(() => triggerLitterBoxFailure(), TIME_LIMIT);
+        if(gameActive && !isPaused) moveTimer = setTimeout(() => triggerLitterBoxFailure(), TIME_LIMIT);
     }
 
     function triggerLitterBoxFailure() {
         gameActive = false; bgMusic.playbackRate = 0.5;
-        document.getElementById('status').innerText = "SYSTEM CLOGGED: TICKET #404-POO";
+        document.getElementById('status').innerText = "CLEAN THE BOX: TICKET #404-POO";
         document.getElementById('reset-btn').style.display = 'block';
         for(let i=0; i<40; i++) poops.push({ x: Math.random()*canvas.width, y: -50-Math.random()*500, speed: 3+Math.random()*5, rot: Math.random()*360 });
     }
@@ -278,45 +249,28 @@ function togglePlay() {
     }
 
     function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // 1. Draw Grid
-    for(let r=0; r<ROWS; r++) {
-        for(let c=0; c<COLS; c++) {
-            if(grid[r][c]) ctx.drawImage(grid[r][c].img, grid[r][c].x+2, grid[r][c].y+2, TILE_SIZE-4, TILE_SIZE-4);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for(let r=0; r<ROWS; r++) {
+            for(let c=0; c<COLS; c++) {
+                if(grid[r][c]) ctx.drawImage(grid[r][c].img, grid[r][c].x+2, grid[r][c].y+2, TILE_SIZE-4, TILE_SIZE-4);
+            }
         }
+        ctx.font = "30px Arial";
+        poops.forEach(p => { 
+            if(!isPaused) p.y += p.speed; 
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot*Math.PI/180); ctx.fillText("💩", 0,0); ctx.restore(); 
+        });
+        if(!gameActive) {
+            ctx.drawImage(images[LITTER_BOX_IMG], canvas.width/2-50, 40, 100, 80);
+            ctx.fillStyle = "#00ffff"; ctx.font = "12px 'Courier New'";
+            ctx.fillText("MAINTENANCE REQUIRED", canvas.width/2-65, 140);
+            ctx.fillText("SUBMIT TICKET #404-POO", canvas.width/2-70, 160);
+        }
+        requestAnimationFrame(draw);
     }
 
-    // 2. The Poop: Freeze movement but keep rendering
-    ctx.font = "30px Arial";
-    poops.forEach(p => {
-        if (!isPaused) { 
-            p.y += p.speed; // Gravity only works when NOT paused
-        }
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot * Math.PI / 180);
-        ctx.fillText("💩", 0, 0);
-        ctx.restore();
-    });
-
-    // 3. The Overlays: Show them if game is NOT active, regardless of pause
-    if(!gameActive) { 
-        ctx.drawImage(images[LITTER_BOX_IMG], canvas.width/2-50, 40, 100, 80);
-        ctx.fillStyle = "#00ffff"; ctx.font = "12px 'Courier New'";
-        ctx.fillText("MAINTENANCE REQUIRED", canvas.width/2-65, 140);
-        ctx.fillText("SUBMIT TICKET #404-POO", canvas.width/2-70, 160);
-    }
-
-    requestAnimationFrame(draw);
-}
-
-
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
     preload();
-    if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-}
-
 </script>
 </body>
 </html>
