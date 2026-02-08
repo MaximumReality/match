@@ -52,7 +52,7 @@
     </style>
 </head>
 <body>
-
+    
 <div id="crt-overlay"></div>
 
 <div id="ui-layer">
@@ -65,10 +65,9 @@
 </div>
 
 <script>
-    const canvas = document.getElementById('gameCanvas');
+        const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    // iPhone 14 Pro Max responsive grid sizing
     const ROWS = 8;
     const COLS = 8;
     const TILE_SIZE = Math.min(window.innerWidth / 8.5, 45);
@@ -76,28 +75,27 @@
     canvas.height = ROWS * TILE_SIZE;
 
     const CEREAL_TYPES = [
-        'winter_azulos.png',
-        'azulos_galaxy_mix.png',
-        'azulos_neon_crunch.png',
-        'azulo_blueberry_vanilla.jpg',
-        'azulos_glitch_cereal.png',
-        'summer_azulos.png',
-        'mochkil_puffs_orange.png',
-        'mochkil_puffs_dessert_edition.png'
+        'winter_azulos.png', 'azulos_galaxy_mix.png', 'azulos_neon_crunch.png',
+        'azulo_blueberry_vanilla.jpg', 'azulos_glitch_cereal.png',
+        'summer_azulos.png', 'mochkil_puffs_orange.png', 'mochkil_puffs_dessert_edition.png'
     ];
     
     const MEGA_BURGER = 'mochkil-burger.png';
     let grid = [];
     let images = {};
-
-    // Preload images to prevent flickering
-    let loadedCount = 0;
-    const allAssets = [...CEREAL_TYPES, MEGA_BURGER];
+    let firstSelection = null;
+    let poops = [];
+    let audioStarted = false;
+    const bgMusic = new Audio('hard-cyberpunk.mp3');
+    bgMusic.loop = true;
+    bgMusic.volume = 0.5;
 
     function preload() {
+        const allAssets = [...CEREAL_TYPES, MEGA_BURGER];
+        let loadedCount = 0;
         allAssets.forEach(src => {
             const img = new Image();
-            img.src = src; // Assuming they are in the same folder as index.html
+            img.src = src;
             img.onload = () => {
                 loadedCount++;
                 if (loadedCount === allAssets.length) start();
@@ -115,41 +113,136 @@
         for (let r = 0; r < ROWS; r++) {
             grid[r] = [];
             for (let c = 0; c < COLS; c++) {
-                const randomBox = CEREAL_TYPES[Math.floor(Math.random() * CEREAL_TYPES.length)];
-                grid[r][c] = { 
-                    img: images[randomBox], 
-                    x: c * TILE_SIZE, 
-                    y: r * TILE_SIZE,
-                    type: randomBox 
-                };
+                const type = CEREAL_TYPES[Math.floor(Math.random() * CEREAL_TYPES.length)];
+                grid[r][c] = { img: images[type], type: type, x: c * TILE_SIZE, y: r * TILE_SIZE };
             }
+        }
+    }
+
+    function startAudio() {
+        if (!audioStarted) {
+            bgMusic.play().catch(() => {});
+            audioStarted = true;
+            document.getElementById('status').innerText = "SYSTEM ACTIVE: BUREAUCRACY IN PROGRESS";
+        }
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+        startAudio();
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const col = Math.floor((touch.clientX - rect.left) / TILE_SIZE);
+        const row = Math.floor((touch.clientY - rect.top) / TILE_SIZE);
+        handleTileSelect(row, col);
+    }, { passive: false });
+
+    function handleTileSelect(r, c) {
+        if (!firstSelection) {
+            firstSelection = { r, c };
+        } else {
+            const dR = Math.abs(r - firstSelection.r);
+            const dC = Math.abs(c - firstSelection.c);
+            if ((dR === 1 && dC === 0) || (dR === 0 && dC === 1)) {
+                swapTiles(firstSelection.r, firstSelection.c, r, c);
+                checkMatches();
+            }
+            firstSelection = null;
+        }
+    }
+
+    function swapTiles(r1, c1, r2, c2) {
+        const temp = grid[r1][c1];
+        grid[r1][c1] = grid[r2][c2];
+        grid[r2][c2] = temp;
+        // Immediate sync of display coords
+        grid[r1][c1].x = c1 * TILE_SIZE; grid[r1][c1].y = r1 * TILE_SIZE;
+        grid[r2][c2].x = c2 * TILE_SIZE; grid[r2][c2].y = r2 * TILE_SIZE;
+    }
+
+    function checkMatches() {
+        let toRemove = new Set();
+        // Horizontal
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS - 2; c++) {
+                if (grid[r][c].type === grid[r][c+1].type && grid[r][c].type === grid[r][c+2].type) {
+                    [0,1,2].forEach(i => toRemove.add(`${r},${c+i}`));
+                }
+            }
+        }
+        // Vertical
+        for (let c = 0; c < COLS; c++) {
+            for (let r = 0; r < ROWS - 2; r++) {
+                if (grid[r][c].type === grid[r+1][c].type && grid[r][c].type === grid[r+2][c].type) {
+                    [0,1,2].forEach(i => toRemove.add(`${r+i},${c}`));
+                }
+            }
+        }
+        if (toRemove.size > 0) processMatches(toRemove);
+    }
+
+    function processMatches(toRemove) {
+        toRemove.forEach(pos => {
+            const [r, c] = pos.split(',').map(Number);
+            grid[r][c] = null;
+        });
+
+        for (let c = 0; c < COLS; c++) {
+            let emptySlot = ROWS - 1;
+            for (let r = ROWS - 1; r >= 0; r--) {
+                if (grid[r][c] !== null) {
+                    grid[emptySlot][c] = grid[r][c];
+                    grid[emptySlot][c].y = emptySlot * TILE_SIZE; // Drop to slot
+                    if (emptySlot !== r) grid[r][c] = null;
+                    emptySlot--;
+                }
+            }
+            for (let r = emptySlot; r >= 0; r--) {
+                const type = CEREAL_TYPES[Math.floor(Math.random() * CEREAL_TYPES.length)];
+                grid[r][c] = { img: images[type], type: type, x: c * TILE_SIZE, y: r * TILE_SIZE };
+            }
+        }
+    }
+
+    function triggerLitterBoxFailure() {
+        bgMusic.playbackRate = 0.5;
+        document.getElementById('status').innerText = "SYSTEM CLOGGED: CLEAN THE BOX";
+        for(let i = 0; i < 40; i++) {
+            poops.push({ x: Math.random() * canvas.width, y: -50 - Math.random() * 500, speed: 2 + Math.random() * 4, rot: Math.random() * 360 });
         }
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw Grid
         for (let r = 0; r < ROWS; r++) {
             for (let c = 0; c < COLS; c++) {
                 const tile = grid[r][c];
-                ctx.drawImage(tile.img, tile.x + 2, tile.y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
-                
-                // Neon Grid Lines
-                ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
-                ctx.strokeRect(tile.x, tile.y, TILE_SIZE, TILE_SIZE);
+                if (tile) {
+                    ctx.drawImage(tile.img, tile.x + 2, tile.y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                    if (firstSelection && firstSelection.r === r && firstSelection.c === c) {
+                        ctx.strokeStyle = '#ff00ff';
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(tile.x + 2, tile.y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                    }
+                }
             }
         }
+        
+        // Draw the Poop Rain
+        ctx.font = "24px Arial";
+        poops.forEach(p => {
+            p.y += p.speed;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot * Math.PI / 180);
+            ctx.fillText("💩", 0, 0);
+            ctx.restore();
+        });
+
         requestAnimationFrame(draw);
     }
 
-    // Your Spite Logic Trigger
-    function triggerLitterBoxShake() {
-        document.getElementById('status').innerText = "SYSTEM CLOGGED: 💩 DROPPING";
-        // Shake logic and poop particle logic goes here
-    }
-
     preload();
+
 </script>
 </body>
 </html>
