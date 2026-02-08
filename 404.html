@@ -18,10 +18,15 @@
             text-align: center;
         }
         img {
-            max-width: 80%;
-            border: 2px solid #ff003c;
-            box-shadow: 0 0 20px #ff003c;
-            margin-bottom: 20px;
+    max-width: 45%; /* Shrinks it to slightly less than half width */
+    max-height: 40vh; /* Ensures it never takes up more than 40% of the screen height */
+    height: auto; /* Maintains the original proportions of the sign */
+    border: 2px solid #ff003c;
+    box-shadow: 0 0 15px rgba(255, 0, 60, 0.5);
+    margin: 15px 0;
+    object-fit: contain;
+}
+
         }
         .bureaucracy-text {
             color: #ff003c;
