@@ -19,11 +19,20 @@
     <style>
         :root { --neon-pink: #ff00ff; --neon-cyan: #00ffff; }
         body {
-            margin: 0; background: #0a0a0a; color: var(--neon-cyan);
-            font-family: 'Courier New', monospace; overflow: hidden;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            height: 100vh; touch-action: none; -webkit-user-select: none;
-        }
+    margin: 0; 
+    background: #0a0a0a; 
+    color: var(--neon-cyan);
+    font-family: 'Courier New', monospace; 
+    overflow: hidden;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: flex-start; /* Changed from center to pull everything up */
+    padding-top: env(safe-area-inset-top); /* Respects the iPhone notch/dynamic island */
+    height: 100vh; 
+    touch-action: none; 
+    -webkit-user-select: none;
+}
 
         /* Splash Screen */
         #splash-screen {
@@ -36,11 +45,22 @@
         .splash-cast { position: absolute; width: 100px; filter: drop-shadow(0 0 5px var(--neon-pink)); }
 
         /* Game UI */
-        #ui-layer { text-align: center; margin-bottom: 5px; width: 100%; position: relative; }
-        #game-container {
-            position: relative; border: 4px solid var(--neon-pink);
-            box-shadow: 0 0 20px var(--neon-pink); background: #000;
-        }
+        #ui-layer { 
+    text-align: center; 
+    margin-top: 10px;    /* Small gap from the top bar */
+    margin-bottom: 5px; 
+    width: 100%; 
+    position: relative; 
+}
+
+#game-container {
+    position: relative; 
+    border: 4px solid var(--neon-pink);
+    box-shadow: 0 0 20px var(--neon-pink); 
+    background: #000;
+    margin-top: 0;      /* Tighten the gap between score and board */
+}
+
         #smokin-cat {
     position: fixed;
     bottom: 12px;         /* Anchored to the deck level */
