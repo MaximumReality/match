@@ -43,15 +43,17 @@
         }
         #smokin-cat {
     position: fixed;
-    bottom: 12px;         /* Tucked neatly into the deck area */
-    left: 15px;
-    width: 45px;          /* 1/4 scale for that "pilot" look */
+    bottom: 12px;         /* Anchored to the deck level */
+    right: 15px;          /* MOVED: From left to right */
+    width: 50px;          /* Slightly adjusted for the lean */
     z-index: 2000;
     pointer-events: none;
-    display: none;        /* Start hidden - the JS will wake you up */
+    display: none;        /* Still starts hidden for the splash */
     filter: drop-shadow(0 0 5px var(--neon-pink));
     -webkit-user-drag: none;
+    /* transform: scaleX(-1); */ /* Uncomment this line if you want her facing the tiles! */
 }
+
 
 
 
