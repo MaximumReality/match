@@ -42,9 +42,17 @@
             box-shadow: 0 0 20px var(--neon-pink); background: #000;
         }
         #smokin-cat {
-            position: absolute; top: -75px; right: -10px;
-            width: 90px; z-index: 100; filter: drop-shadow(0 0 5px var(--neon-pink));
-        }
+    position: fixed;      /* Locks her to the screen viewport */
+    bottom: 15px;         /* Sits her right on the deck level */
+    left: 10px;           /* Pushes her slightly in from the left edge */
+    width: 90px;          /* Adjusted size for better presence */
+    z-index: 2000;        /* Highest priority layer */
+    pointer-events: none; /* The magic fix: touches go straight to the tiles */
+    filter: drop-shadow(0 0 10px var(--neon-pink));
+    -webkit-user-drag: none;
+}
+
+
         canvas { display: block; background: #111; }
         .status-msg { font-size: 0.7rem; color: #ff0000; text-transform: uppercase; height: 1.2rem; margin-top: 5px;}
 
@@ -83,7 +91,6 @@
 </div>
 
 <div id="ui-layer">
-    <img src="smokin.png" id="smokin-cat">
     <div style="font-size: 0.8rem; letter-spacing: 2px;">AZUL-O'S: MARKET SHARE</div>
     
     <div style="display: flex; justify-content: space-around; font-weight: bold; margin: 10px 0; font-size: 1.1rem;">
@@ -99,11 +106,16 @@
     <canvas id="gameCanvas"></canvas>
 </div>
 
-<div id="control-deck">
-    <span id="mute-btn" class="deck-icon" onclick="toggleMute()">🔊</span>
-    <span id="play-pause-btn" class="deck-icon" onclick="togglePlay()">⏯️</span>
-    <a href="https://maximumreality.xyz" id="home-link" class="deck-icon">🏡</a>
+<div style="position: relative; width: 100%; display: flex; justify-content: center; margin-top: 10px;">
+    <img src="smokin.png" id="smokin-cat">
+    <div id="control-deck">
+        <span id="mute-btn" class="deck-icon" onclick="toggleMute()">🔊</span>
+        <span id="play-pause-btn" class="deck-icon" onclick="togglePlay()">⏯️</span>
+        <a href="https://maximumreality.xyz" id="home-link" class="deck-icon">🏡</a>
+    </div>
 </div>
+
+
 
 <script>
     const canvas = document.getElementById('gameCanvas');
