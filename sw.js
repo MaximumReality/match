@@ -1,4 +1,4 @@
-const CACHE_NAME = 'azulos-v1.5'; // Version bump for the full folder sync
+const CACHE_NAME = 'azulos-v2'; // Version bump for the full folder sync
 const ASSETS = [
   'index.html',
   'manifest.json',
@@ -7,9 +7,7 @@ const ASSETS = [
   'corporate-azul.png',
   'mochkil-skate.png',
   'mochkil-living.png',
-  'mochkil-burger.png',
   'smokin.png',
-  'poo-rule.png',
   'litter-box.png',
   'azulo-bars.png', // Added from folder list
   'og-matchmodule.png',       // Added from folder list
@@ -26,10 +24,16 @@ const ASSETS = [
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Azul-O\'s Cache: Securing the Bureaucracy...');
-      return cache.addAll(ASSETS);
+      console.log('Azul-O\'s Cache: Securing assets individually...');
+      // Map through each asset and add it one by one to prevent total failure
+      return Promise.allSettled(
+        ASSETS.map(asset => {
+          return cache.add(asset).catch(err => console.error(`Failed to secure: ${asset}`, err));
+        })
+      );
     })
   );
+  self.skipWaiting(); // Forces the SW to activate immediately
 });
 
 self.addEventListener('fetch', (e) => {
