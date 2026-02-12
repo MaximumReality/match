@@ -34,15 +34,41 @@
     -webkit-user-select: none;
 }
 
-        /* Splash Screen */
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 1000; display: flex;
-            flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; transition: opacity 0.5s;
-        }
-        .glitch-text { font-size: 1.5rem; margin: 10px; text-shadow: 2px 2px var(--neon-pink); }
-        .splash-cast { position: absolute; width: 100px; filter: drop-shadow(0 0 5px var(--neon-pink)); }
+        /* Splash Screen - Layout Updated to pull content up */
+#splash-screen {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: #000; 
+    z-index: 1000; 
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: flex-start; /* This pulls Mochkil and text to the top */
+    padding-top: env(safe-area-inset-top); /* Keeps him below the iPhone notch */
+    text-align: center; 
+    transition: opacity 0.5s;
+}
+
+/* Keep these exactly as they are so you don't lose the glow/glitch! */
+.glitch-text { 
+    font-size: 1.5rem; 
+    margin: 10px; 
+    text-shadow: 2px 2px var(--neon-pink); 
+}
+
+.splash-cast { 
+    position: absolute; 
+    width: 100px; 
+    filter: drop-shadow(0 0 5px var(--neon-pink)); 
+}
+
+/* Add this tiny bit to give Mochkil some breathing room from the very top */
+#splash-screen img:first-child {
+    margin-top: 60px; 
+}
 
         /* Game UI */
         #ui-layer { 
