@@ -1,9 +1,9 @@
 {
   "name": "Maximum Reality: Match Module",
   "short_name": "MatchModule",
-  "id": "/match-module/",
+  "id": "match-module-game",
   "description": "The official Bureaucracy Grind for Azul-O's Market Share.",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0a0a",
