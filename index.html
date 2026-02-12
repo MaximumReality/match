@@ -42,15 +42,17 @@
             box-shadow: 0 0 20px var(--neon-pink); background: #000;
         }
         #smokin-cat {
-    position: fixed;      /* Locks her to the screen viewport */
-    bottom: 15px;         /* Sits her right on the deck level */
-    left: 10px;           /* Pushes her slightly in from the left edge */
-    width: 90px;          /* Adjusted size for better presence */
-    z-index: 2000;        /* Highest priority layer */
-    pointer-events: none; /* The magic fix: touches go straight to the tiles */
-    filter: drop-shadow(0 0 10px var(--neon-pink));
+    position: fixed;
+    bottom: 12px;         /* Tucked neatly into the deck area */
+    left: 15px;
+    width: 45px;          /* 1/4 scale for that "pilot" look */
+    z-index: 2000;
+    pointer-events: none;
+    display: none;        /* Start hidden - the JS will wake you up */
+    filter: drop-shadow(0 0 5px var(--neon-pink));
     -webkit-user-drag: none;
 }
+
 
 
         canvas { display: block; background: #111; }
@@ -155,12 +157,20 @@
     function start() { createCerealGrid(); resetStinkTimer(); draw(); }
 
     function dismissSplash() {
-        document.getElementById('splash-screen').style.opacity = '0';
-        setTimeout(() => {
-            document.getElementById('splash-screen').style.display = 'none';
-            if (!audioStarted) { bgMusic.play(); audioStarted = true; }
-        }, 500);
-    }
+    document.getElementById('splash-screen').style.opacity = '0';
+    setTimeout(() => {
+        document.getElementById('splash-screen').style.display = 'none';
+        
+        // REVEAL THE AVATAR NOW
+        document.getElementById('smokin-cat').style.display = 'block';
+
+        if (!audioStarted) { 
+            bgMusic.play(); 
+            audioStarted = true; 
+        }
+    }, 500);
+}
+
 
     function createCerealGrid() {
         for (let r = 0; r < ROWS; r++) {
