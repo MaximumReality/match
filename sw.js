@@ -1,9 +1,10 @@
-const CACHE_NAME = 'azulos-v4'; // Version bump for the full folder sync
+const CACHE_NAME = 'azulos-v5'; // Version bump for the full folder sync
 const ASSETS = [
   'index.html',
   'manifest.json',
   'sw.js',
   'favicon.png',
+  'cardboard-tank.png',
   'poo-rule.png',
   'hard-cyberpunk.mp3',
   'corporate-azul.png',
