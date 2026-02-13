@@ -192,7 +192,7 @@
 <div style="position: relative; width: 100%; display: flex; justify-content: center; margin-top: 10px;">
     <img src="smokin.png" id="smokin-cat">
     <img src="poo-rule.png" id="poo-sign" style="display:none; width:50px; position:fixed; bottom:12px; left:15px; z-index:2000; filter:drop-shadow(0 0 5px var(--neon-pink)); pointer-events:none;">
-    <img src="cardboard-tank.png" id="chaos-tank" style="position:fixed; bottom:0; left:-200px; width:150px; z-index:3000; pointer-events:none; transition: none;">
+    <img src="cardboard_tank.png" id="chaos-tank" style="position:fixed; bottom:0; left:-200px; width:150px; z-index:3000; pointer-events:none; transition: none;">
     <div id="control-deck">
         <span id="mute-btn" class="deck-icon" onclick="toggleMute()">🔊</span>
         <span id="play-pause-btn" class="deck-icon" onclick="togglePlay()">⏯️</span>
@@ -229,7 +229,7 @@
 
     function preload() {
         document.getElementById('high-score-val').innerText = highScore;
-        const assets = [...CEREAL_TYPES, LITTER_BOX_IMG, 'smokin.png', 'poo-rule.png', 'corporate-azul.png', 'mochkil-skate.png', 'mochkil-living.png','cardboard-tank.png'];
+        const assets = [...CEREAL_TYPES, LITTER_BOX_IMG, 'smokin.png', 'poo-rule.png', 'corporate-azul.png', 'mochkil-skate.png', 'mochkil-living.png','cardboard_tank.png'];
         let loaded = 0;
         assets.forEach(src => {
             const img = new Image(); img.src = src;
