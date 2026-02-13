@@ -1,4 +1,4 @@
-const CACHE_NAME = 'azulos-v5'; // Version bump for the full folder sync
+const CACHE_NAME = 'azulos-v5.5'; // Version bump for the full folder sync
 const ASSETS = [
   'index.html',
   'manifest.json',
