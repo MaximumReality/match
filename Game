@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>MAXIMUM REALITY: Match Module</title>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="MatchModule">
+    <meta name="application-name" content="Match Module">
+    <meta name="theme-color" content="#ff00ff">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="A neon-glitch match game where cereal brands merge, corporations collapse, and Mochkil runs the chaos engine. Drag. Merge. Maintain the litter box.">
+
+    <style>
+        :root { --neon-pink: #ff00ff; --neon-cyan: #00ffff; }
+        body {
+    margin: 0; 
+    background: #0a0a0a; 
+    color: var(--neon-cyan);
+    font-family: 'Courier New', monospace; 
+    overflow: hidden;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: flex-start; /* Changed from center to pull everything up */
+    padding-top: env(safe-area-inset-top); /* Respects the iPhone notch/dynamic island */
+    height: 100vh; 
+    touch-action: none; 
+    -webkit-user-select: none;
+}
+
+        /* Splash Screen - Layout Updated to pull content up */
+#splash-screen {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: #000; 
+    z-index: 1000; 
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: flex-start; /* This pulls Mochkil and text to the top */
+    padding-top: env(safe-area-inset-top); /* Keeps him below the iPhone notch */
+    text-align: center; 
+    transition: opacity 0.5s;
+}
+
+/* Keep these exactly as they are so you don't lose the glow/glitch! */
+.glitch-text { 
+    font-size: 1.5rem; 
+    margin: 10px; 
+    text-shadow: 2px 2px var(--neon-pink); 
+}
+
+.splash-cast { 
+    position: absolute; 
+    width: 100px; 
+    filter: drop-shadow(0 0 5px var(--neon-pink)); 
+}
+
+/* Add this tiny bit to give Mochkil some breathing room from the very top */
+#splash-screen img:first-child {
+    margin-top: 60px; 
+}
+
+        /* Game UI */
+        #ui-layer { 
+    text-align: center; 
+    margin-top: 10px;    /* Small gap from the top bar */
+    margin-bottom: 5px; 
+    width: 100%; 
+    position: relative; 
+}
+
+#game-container {
+    position: relative; 
+    border: 4px solid var(--neon-pink);
+    box-shadow: 0 0 20px var(--neon-pink); 
+    background: #000;
+    margin-top: 0;      /* Tighten the gap between score and board */
+}
+
+        #smokin-cat {
+    position: fixed;
+    bottom: 12px;         /* Anchored to the deck level */
+    right: 15px;          /* MOVED: From left to right */
+    width: 50px;          /* Slightly adjusted for the lean */
+    z-index: 2000;
+    pointer-events: none;
+    display: none;        /* Still starts hidden for the splash */
+    filter: drop-shadow(0 0 5px var(--neon-pink));
+    -webkit-user-drag: none;
+    //*transform: scaleX(-1); */ /* Uncomment this line if you want her facing the tiles! */
+}
+
+
+
+
+        canvas { display: block; background: #111; }
+        .status-msg { font-size: 0.7rem; color: #ff0000; text-transform: uppercase; height: 1.2rem; margin-top: 5px;}
+
+        /* Control Deck */
+        #control-deck {
+            margin-top: 15px; display: flex; gap: 25px; align-items: center;
+            background: rgba(255, 0, 255, 0.1); padding: 10px 30px;
+            border-radius: 50px; border: 1px solid var(--neon-pink);
+        }
+        .deck-icon { font-size: 1.5rem; cursor: pointer; transition: transform 0.2s; }
+        .deck-icon:active { transform: scale(1.2); }
+        #home-link { text-decoration: none; color: inherit; }
+
+        #reset-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 200; padding: 20px; background: rgba(0,0,0,0.95);
+            border: 2px solid var(--neon-cyan); color: var(--neon-cyan);
+            font-family: 'Courier New'; display: none; cursor: pointer;
+        }
+
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        #poo-sign {
+    animation: neon-flicker 2s infinite;
+}
+
+@keyframes neon-flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+    20%, 22%, 24%, 55% { opacity: 0.4; }
+}
+        @keyframes oscillate {
+    0% { transform: translate(2px, 1px) rotate(0deg); }
+    20% { transform: translate(-1px, -2px) rotate(-1deg); }
+    40% { transform: translate(-3px, 0px) rotate(1deg); }
+    60% { transform: translate(3px, 2px) rotate(0deg); }
+    80% { transform: translate(1px, -1px) rotate(1deg); }
+    100% { transform: translate(-1px, 2px) rotate(-1deg); }
+}
+
+.glitch-shake {
+    animation: oscillate 0.1s infinite;
+    filter: hue-rotate(90deg) contrast(150%);
+}
+        @keyframes drive-by {
+    from { left: -200px; }
+    to { left: 100vw; }
+}
+
+/* Change 'forwards' to 'none' so it resets to the left (-200px) after finishing */
+.tank-active {
+    animation: drive-by 2.5s linear none;
+    filter: blur(0.5px); /* Just a tiny bit of speed-blur */
+}
+
+
+
+</style>
+</head>
+<body>
+
+<div id="splash-screen" onclick="dismissSplash()">
+    <img src="mochkil-skate.png" style="width: 140px; margin-bottom: 20px;">
+    <div class="glitch-text">MAXIMUM REALITY MATCH</div>
+    <div style="font-size: 0.8rem; color: var(--neon-cyan); max-width: 80%;">
+        *Optimizing High-Octane Boredom*<br>
+        *Syncing Mochkil's Chaos Engine*
+    </div>
+    <img src="corporate-azul.png" class="splash-cast" style="bottom: 20px; left: 20px;">
+    <img src="mochkil-living.png" class="splash-cast" style="bottom: 20px; right: 20px;">
+    <div style="margin-top: 40px; animation: blink 1s infinite;">[ TAP TO SYNC REALITY ]</div>
+</div>
+
+<div id="ui-layer">
+    <div style="font-size: 0.8rem; letter-spacing: 2px;">AZUL-O'S: MARKET SHARE</div>
+    
+    <div style="display: flex; justify-content: space-around; font-weight: bold; margin: 10px 0; font-size: 1.1rem;">
+        <div>SHARE: <span id="score-val" style="color: var(--neon-cyan);">0</span>%</div>
+        <div style="color: var(--neon-pink);">RECORD: <span id="high-score-val">0</span>%</div>
+    </div>
+    
+    <div id="status" class="status-msg">DRAG TO MERGE CORPORATIONS...</div>
+</div>
+
+<div id="game-container">
+    <button id="reset-btn" onclick="resetGame()">Scrub the Box (Restart)</button>
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<div style="position: relative; width: 100%; display: flex; justify-content: center; margin-top: 10px;">
+    <img src="smokin.png" id="smokin-cat">
+    <img src="poo-rule.png" id="poo-sign" style="display:none; width:50px; position:fixed; bottom:12px; left:15px; z-index:2000; filter:drop-shadow(0 0 5px var(--neon-pink)); pointer-events:none;">
+    <img src="cardboard_tank.png" id="chaos-tank" style="position:fixed; bottom:0; left:-200px; width:150px; z-index:3000; pointer-events:none; transition: none;">
+    <div id="control-deck">
+        <span id="mute-btn" class="deck-icon" onclick="toggleMute()">🔊</span>
+        <span id="play-pause-btn" class="deck-icon" onclick="togglePlay()">⏯️</span>
+        <a href="https://maximumreality.xyz" id="home-link" class="deck-icon">🏡</a>
+    </div>
+</div>
+
+
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const ROWS = 6; const COLS = 6;
+    const TILE_SIZE = Math.min(window.innerWidth / 6.5, 60); 
+    canvas.width = COLS * TILE_SIZE; canvas.height = ROWS * TILE_SIZE;
+
+    const CEREAL_TYPES = [
+        'winter_azulos.png', 'azulos_galaxy_mix.png', 'azulos_neon_crunch.png',
+        'azulo_blueberry_vanilla.jpg', 'azulos_glitch_cereal.png',
+        'summer_azulos.png','azulo-bars.png', 'mochkil_puffs_orange.png', 'mochkil_puffs_dessert_edition.png'
+    ];
+    const LITTER_BOX_IMG = 'litter-box.png';
+    const bgMusic = new Audio('hard-cyberpunk.mp3');
+    const glitchSound = new Audio('hack-success.mp3'); // Added the glitch sound object
+    bgMusic.loop = true; bgMusic.volume = 0.5;
+
+    let grid = []; let images = {}; let poops = [];
+    let dragStart = null; let audioStarted = false; 
+    let gameActive = true; let isPaused = false; let isMuted = false;
+    let moveTimer; const TIME_LIMIT = 7000;
+    
+    let score = 0;
+    let highScore = localStorage.getItem('azulos_high_score') || 0;
+
+    function preload() {
+        document.getElementById('high-score-val').innerText = highScore;
+        const assets = [...CEREAL_TYPES, LITTER_BOX_IMG, 'smokin.png', 'poo-rule.png', 'corporate-azul.png', 'mochkil-skate.png', 'mochkil-living.png','cardboard_tank.png'];
+        let loaded = 0;
+        assets.forEach(src => {
+            const img = new Image(); img.src = src;
+            img.onload = () => { if(++loaded === assets.length) start(); };
+            images[src] = img;
+        });
+    }
+
+    function start() { createCerealGrid(); resetStinkTimer(); draw(); }
+
+    function dismissSplash() {
+        document.getElementById('splash-screen').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('splash-screen').style.display = 'none';
+            document.getElementById('smokin-cat').style.display = 'block';
+            document.getElementById('poo-sign').style.display = 'block';
+
+            if (!audioStarted) { bgMusic.play(); audioStarted = true; }
+        }, 500);
+    }
+
+    function createCerealGrid() {
+        for (let r = 0; r < ROWS; r++) {
+            grid[r] = [];
+            for (let c = 0; c < COLS; c++) {
+                const type = CEREAL_TYPES[Math.floor(Math.random() * CEREAL_TYPES.length)];
+                grid[r][c] = { img: images[type], type, x: c * TILE_SIZE, y: r * TILE_SIZE };
+            }
+        }
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+        if (e.cancelable) e.preventDefault();
+        if (!gameActive || isPaused) return;
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        dragStart = {
+            col: Math.floor((touch.clientX - rect.left) / TILE_SIZE),
+            row: Math.floor((touch.clientY - rect.top) / TILE_SIZE),
+            x: touch.clientX, y: touch.clientY
+        };
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+        if (e.cancelable) e.preventDefault();
+        if (!gameActive || !dragStart || isPaused) return;
+        const touch = e.touches[0];
+        const distOpen = 15;
+        const deltaX = touch.clientX - dragStart.x;
+        const deltaY = touch.clientY - dragStart.y;
+        let targetRow = dragStart.row;
+        let targetCol = dragStart.col;
+
+        if (Math.abs(deltaX) > distOpen || Math.abs(deltaY) > distOpen) {
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                targetCol = deltaX > 0 ? dragStart.col + 1 : dragStart.col - 1;
+            } else {
+                targetRow = deltaY > 0 ? dragStart.row + 1 : dragStart.row - 1;
+            }
+            if (targetRow >= 0 && targetRow < ROWS && targetCol >= 0 && targetCol < COLS) {
+                swapTiles(dragStart.row, dragStart.col, targetRow, targetCol);
+                checkMatches();
+                resetStinkTimer();
+                dragStart = null;
+            }
+        }
+    }, { passive: false });
+
+    function swapTiles(r1, c1, r2, c2) {
+        let temp = grid[r1][c1];
+        grid[r1][c1] = grid[r2][c2];
+        grid[r2][c2] = temp;
+        grid[r1][c1].x = c1 * TILE_SIZE; grid[r1][c1].y = r1 * TILE_SIZE;
+        grid[r2][c2].x = c2 * TILE_SIZE; grid[r2][c2].y = r2 * TILE_SIZE;
+    }
+
+    function checkMatches() {
+        let toRemove = new Set();
+        for(let r=0; r<ROWS; r++) {
+            for(let c=0; c<COLS-2; c++) {
+                if(grid[r][c] && grid[r][c+1] && grid[r][c+2]) {
+                    if(grid[r][c].type === grid[r][c+1].type && grid[r][c].type === grid[r][c+2].type) {
+                        toRemove.add(`${r},${c}`); toRemove.add(`${r},${c+1}`); toRemove.add(`${r},${c+2}`);
+                    }
+                }
+            }
+        }
+        for(let c=0; c<COLS; c++) {
+            for(let r=0; r<ROWS-2; r++) {
+                if(grid[r][c] && grid[r+1][c] && grid[r+2][c]) {
+                    if(grid[r][c].type === grid[r+1][c].type && grid[r][c].type === grid[r+2][c].type) {
+                        toRemove.add(`${r},${c}`); toRemove.add(`${r+1},${c}`); toRemove.add(`${r+2},${c}`);
+                    }
+                }
+            }
+        }
+
+        if(toRemove.size > 0) {
+            let isLShape = false;
+            toRemove.forEach(pos => {
+                const [r, c] = pos.split(',').map(Number);
+                let countH = 0, countV = 0;
+                toRemove.forEach(p2 => {
+                    const [r2, c2] = p2.split(',').map(Number);
+                    if (r === r2) countH++;
+                    if (c === c2) countV++;
+                });
+                if (countH >= 3 && countV >= 3) isLShape = true;
+            });
+            processMatches(toRemove, isLShape);
+            setTimeout(() => checkMatches(), 300); 
+        }
+    }
+
+    function processMatches(toRemove, isLShape) {
+        let multiplier = 1;
+        let msg = "CORPORATE MERGER";
+        
+        if (isLShape) { 
+            multiplier = 10; msg = "HOSTILE TAKEOVER: 10X"; 
+            triggerGlitchEffect(); 
+        } else if (toRemove.size >= 5) { 
+            multiplier = 5; msg = "MONOPOLY MERGER: 5X"; 
+            triggerGlitchEffect();
+        }  else if (toRemove.size === 4) { 
+        multiplier = 2; 
+        msg = "SYNERGY STRIKE: 2X"; 
+        triggerTankDriveBy(); // <--- Launch the tank!
+    }
+
+
+        document.getElementById('status').innerText = msg;
+        updateScore(toRemove.size * multiplier);
+
+        toRemove.forEach(pos => {
+            const [r, c] = pos.split(',').map(Number);
+            grid[r][c] = null;
+        });
+
+        for(let c=0; c<COLS; c++) {
+            let empty = ROWS-1;
+            for(let r=ROWS-1; r>=0; r--) {
+                if(grid[r][c]) {
+                    grid[empty][c] = grid[r][c];
+                    grid[empty][c].y = empty * TILE_SIZE;
+                    if(empty !== r) grid[r][c] = null;
+                    empty--;
+                }
+            }
+            for(let r=empty; r>=0; r--) {
+                const type = CEREAL_TYPES[Math.floor(Math.random() * CEREAL_TYPES.length)];
+                grid[r][c] = { img: images[type], type, x: c * TILE_SIZE, y: r * TILE_SIZE };
+            }
+        }
+    }
+
+    function triggerGlitchEffect() {
+        const gameContainer = document.getElementById('game-container');
+        const body = document.body;
+        if (!isMuted) glitchSound.play();
+        gameContainer.classList.add('glitch-shake');
+        let flickerCount = 0;
+        const flicker = setInterval(() => {
+            body.style.background = flickerCount % 2 === 0 ? 'var(--neon-pink)' : 'var(--neon-cyan)';
+            gameContainer.style.borderColor = flickerCount % 2 === 0 ? 'var(--neon-cyan)' : 'var(--neon-pink)';
+            flickerCount++;
+            if (flickerCount > 6) {
+                clearInterval(flicker);
+                body.style.background = '#0a0a0a';
+                gameContainer.style.borderColor = 'var(--neon-pink)';
+                gameContainer.classList.remove('glitch-shake');
+            }
+        }, 50);
+    }
+
+    function triggerTankDriveBy() {
+    const tank = document.getElementById('chaos-tank');
+    
+    // Remove class if it's already there (to reset the animation)
+    tank.classList.remove('tank-active');
+    
+    // Void offset hack to force a re-flow so the animation can restart
+    void tank.offsetWidth; 
+    
+    // Start the drive-by
+    tank.classList.add('tank-active');
+    
+    // Optional: Add a tank sound if you have one!
+    // if (!isMuted) tankSound.play();
+}
+
+
+    function updateScore(points) {
+        score += points;
+        document.getElementById('score-val').innerText = score;
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('azulos_high_score', highScore);
+            document.getElementById('high-score-val').innerText = highScore;
+        }
+    }
+
+    function toggleMute() {
+        isMuted = !isMuted; bgMusic.muted = isMuted; glitchSound.muted = isMuted;
+        document.getElementById('mute-btn').innerText = isMuted ? "🔇" : "🔊";
+    }
+
+    function togglePlay() {
+        isPaused = !isPaused;
+        if (isPaused) { bgMusic.pause(); clearTimeout(moveTimer); document.getElementById('status').innerText = "SYSTEM PAUSED"; }
+        else { bgMusic.play(); if(gameActive) { resetStinkTimer(); document.getElementById('status').innerText = "MERGING..."; } }
+    }
+
+    function resetStinkTimer() {
+        clearTimeout(moveTimer);
+        if(gameActive && !isPaused) moveTimer = setTimeout(() => triggerLitterBoxFailure(), TIME_LIMIT);
+    }
+
+    function triggerLitterBoxFailure() {
+        gameActive = false; bgMusic.playbackRate = 0.5;
+        document.getElementById('status').innerText = "TICKET #404-POO";
+        document.getElementById('reset-btn').style.display = 'block';
+        for(let i=0; i<40; i++) poops.push({ x: Math.random()*canvas.width, y: -50-Math.random()*500, speed: 3+Math.random()*5, rot: Math.random()*360 });
+    }
+
+    function resetGame() {
+        score = 0; document.getElementById('score-val').innerText = score;
+        gameActive = true; poops = []; bgMusic.playbackRate = 1.0;
+        document.getElementById('reset-btn').style.display = 'none';
+        createCerealGrid(); resetStinkTimer();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for(let r=0; r<ROWS; r++) {
+            for(let c=0; c<COLS; c++) {
+                if(grid[r][c]) ctx.drawImage(grid[r][c].img, grid[r][c].x+2, grid[r][c].y+2, TILE_SIZE-4, TILE_SIZE-4);
+            }
+        }
+        poops.forEach(p => { 
+            if(!isPaused) p.y += p.speed; 
+            ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot*Math.PI/180); ctx.fillText("💩", 0,0); ctx.restore(); 
+        });
+        if(!gameActive) ctx.drawImage(images[LITTER_BOX_IMG], canvas.width/2-50, 40, 100, 80);
+        requestAnimationFrame(draw);
+    }
+
+    preload();
+</script>
+
+
+</body>
+</html>
