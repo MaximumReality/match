@@ -1,4 +1,4 @@
-const CACHE_NAME = 'azulos-v5.5'; // Version bump for the full folder sync
+const CACHE_NAME = 'azulos-v6'; // Version bump for the full folder sync
 const ASSETS = [
   'index.html',
   'manifest.json',
@@ -46,3 +46,18 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            console.log('Clearing old reality:', key);
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+});
+
