@@ -1,6 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+  (function() {
+    const authorized = [
+      "maximumreality.github.io",
+      "maximumreality.xyz"
+    ];
+    if (!authorized.includes(window.location.hostname)) {
+      document.body.innerHTML = `
+        <div style="background:#000;color:#ff00ff;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:monospace;padding:20px;">
+          <h1>ACCESS DENIED</h1>
+          <p>This reality has been compromised.</p>
+          <p>Ticket #404-POO: Unauthorized Mirror Detected.</p>
+          <p>Please visit the official node at maximumreality.xyz</p>
+        </div>`;
+      window.stop();
+    }
+  })();
+</script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
