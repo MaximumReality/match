@@ -12,8 +12,8 @@ const ASSETS = [
   'mochkil-living.png',
   'smokin.png',
   'litter-box.png',
-  'azulo-bars.png', // Added from folder list
-  'og-matchmodule.png',       // Added from folder list
+  'azulo-bars.png',
+  'og-matchmodule.png',
   'winter_azulos.png',
   'summer_azulos.png',
   'azulos_galaxy_mix.png',
@@ -24,40 +24,38 @@ const ASSETS = [
   'mochkil_puffs_dessert_edition.png'
 ];
 
+// INSTALL: Cache assets individually, force SW to activate immediately
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('Azul-O\'s Cache: Securing assets individually...');
-      // Map through each asset and add it one by one to prevent total failure
       return Promise.allSettled(
-        ASSETS.map(asset => {
-          return cache.add(asset).catch(err => console.error(`Failed to secure: ${asset}`, err));
-        })
+        ASSETS.map(asset => cache.add(asset).catch(err => console.error(`Failed to cache: ${asset}`, err)))
       );
-    })
+    }).then(() => self.skipWaiting()) // Immediate activation
   );
-  self.skipWaiting(); // Forces the SW to activate immediately
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
-    })
-  );
-});
+// ACTIVATE: Clear old caches and reload all controlled pages
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log('Clearing old reality:', key);
-            return caches.delete(key);
-          }
-        })
-      );
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.map(key => key !== CACHE_NAME ? caches.delete(key) : null)
+      )
+    ).then(() => {
+      self.clients.claim(); // Take control of all pages immediately
+      // Reload all windows to ensure they use the new SW
+      return self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => client.navigate(client.url));
+      });
     })
   );
 });
 
+// FETCH: Respond with cache first, then network
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then((response) => response || fetch(e.request))
+  );
+});
