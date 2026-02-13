@@ -214,20 +214,14 @@
     function start() { createCerealGrid(); resetStinkTimer(); draw(); }
 
     function dismissSplash() {
-    document.getElementById('splash-screen').style.opacity = '0';
-    setTimeout(() => {
-        document.getElementById('splash-screen').style.display = 'none';
-        
-        // REVEAL THE AVATAR NOW
-        document.getElementById('smokin-cat').style.display = 'block';
-        document.getElementById('poo-sign').style.display = 'block'; // <-- show the new sign
-        if (!audioStarted) { 
-            bgMusic.play(); 
-            audioStarted = true; 
-        }
-    }, 500);
-}
-
+        document.getElementById('splash-screen').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('splash-screen').style.display = 'none';
+            document.getElementById('smokin-cat').style.display = 'block';
+            document.getElementById('poo-sign').style.display = 'block';
+            if (!audioStarted) { bgMusic.play(); audioStarted = true; }
+        }, 500);
+    }
 
     function createCerealGrid() {
         for (let r = 0; r < ROWS; r++) {
@@ -239,6 +233,7 @@
         }
     }
 
+    // Input Handling
     canvas.addEventListener('touchstart', (e) => {
         if (e.cancelable) e.preventDefault();
         if (!gameActive || isPaused) return;
@@ -286,32 +281,82 @@
 
     function checkMatches() {
         let toRemove = new Set();
+        let rowsMatched = new Set();
+        let colsMatched = new Set();
+
+        // Check Horizontal
         for(let r=0; r<ROWS; r++) {
             for(let c=0; c<COLS-2; c++) {
-                if(grid[r][c].type === grid[r][c+1].type && grid[r][c].type === grid[r][c+2].type)
-                { toRemove.add(`${r},${c}`); toRemove.add(`${r},${c+1}`); toRemove.add(`${r},${c+2}`); }
+                if(grid[r][c] && grid[r][c+1] && grid[r][c+2]) {
+                    if(grid[r][c].type === grid[r][c+1].type && grid[r][c].type === grid[r][c+2].type) {
+                        toRemove.add(`${r},${c}`); toRemove.add(`${r},${c+1}`); toRemove.add(`${r},${c+2}`);
+                        rowsMatched.add(r); colsMatched.add(c);
+                    }
+                }
             }
         }
+        
+        // Check Vertical
         for(let c=0; c<COLS; c++) {
             for(let r=0; r<ROWS-2; r++) {
-                if(grid[r][c].type === grid[r+1][c].type && grid[r][c].type === grid[r+2][c].type)
-                { toRemove.add(`${r},${c}`); toRemove.add(`${r+1},${c}`); toRemove.add(`${r+2},${c}`); }
+                if(grid[r][c] && grid[r+1][c] && grid[r+2][c]) {
+                    if(grid[r][c].type === grid[r+1][c].type && grid[r][c].type === grid[r+2][c].type) {
+                        toRemove.add(`${r},${c}`); toRemove.add(`${r+1},${c}`); toRemove.add(`${r+2},${c}`);
+                        rowsMatched.add(r); colsMatched.add(c);
+                    }
+                }
             }
         }
-        if(toRemove.size > 0) processMatches(toRemove);
+
+        if(toRemove.size > 0) {
+            // Check for L/T-Shape (Intersection)
+            let isLShape = false;
+            toRemove.forEach(pos => {
+                const [r, c] = pos.split(',').map(Number);
+                let countH = 0, countV = 0;
+                toRemove.forEach(p2 => {
+                    const [r2, c2] = p2.split(',').map(Number);
+                    if (r === r2) countH++;
+                    if (c === c2) countV++;
+                });
+                if (countH >= 3 && countV >= 3) isLShape = true;
+            });
+
+            processMatches(toRemove, isLShape);
+            setTimeout(() => checkMatches(), 300); 
+        }
     }
 
-    function processMatches(toRemove) {
-        updateScore(toRemove.size);
-        toRemove.forEach(pos => { const [r,c] = pos.split(',').map(Number); grid[r][c] = null; });
+    function processMatches(toRemove, isLShape) {
+        let multiplier = 1;
+        let msg = "CORPORATE MERGER";
+
+        if (isLShape) { multiplier = 10; msg = "HOSTILE TAKEOVER: 10X"; }
+        else if (toRemove.size >= 5) { multiplier = 5; msg = "MONOPOLY MERGER: 5X"; }
+        else if (toRemove.size === 4) { multiplier = 2; msg = "SYNERGY STRIKE: 2X"; }
+
+        document.getElementById('status').innerText = msg;
+        updateScore(toRemove.size * multiplier);
+
+        toRemove.forEach(pos => {
+            const [r, c] = pos.split(',').map(Number);
+            grid[r][c] = null;
+        });
+
+        // Drop Logic
         for(let c=0; c<COLS; c++) {
             let empty = ROWS-1;
             for(let r=ROWS-1; r>=0; r--) {
-                if(grid[r][c]) { grid[empty][c] = grid[r][c]; grid[empty][c].y = empty*TILE_SIZE; if(empty!==r) grid[r][c]=null; empty--; }
+                if(grid[r][c]) {
+                    grid[empty][c] = grid[r][c];
+                    grid[empty][c].y = empty * TILE_SIZE;
+                    if(empty !== r) grid[r][c] = null;
+                    empty--;
+                }
             }
             for(let r=empty; r>=0; r--) {
-                const type = CEREAL_TYPES[Math.floor(Math.random()*CEREAL_TYPES.length)];
-                grid[r][c] = { img: images[type], type, x: c*TILE_SIZE, y: r*TILE_SIZE };
+                const type = CEREAL_TYPES[Math.floor(Math.random() * CEREAL_TYPES.length)];
+                grid[r][c] = { img: images[type], type, x: c * TILE_SIZE, y: r * TILE_SIZE };
             }
         }
     }
@@ -319,19 +364,10 @@
     function updateScore(points) {
         score += points;
         document.getElementById('score-val').innerText = score;
-        const scoreDisplay = document.getElementById('score-val');
-        scoreDisplay.style.color = 'var(--neon-pink)';
-        setTimeout(() => { scoreDisplay.style.color = 'var(--neon-cyan)'; }, 200);
-
         if (score > highScore) {
             highScore = score;
             localStorage.setItem('azulos_high_score', highScore);
             document.getElementById('high-score-val').innerText = highScore;
-        }
-
-        if (score > 0 && score % 50 === 0) {
-            resetStinkTimer(); 
-            document.getElementById('status').innerText = "QUARTERLY BONUS: +7s";
         }
     }
 
@@ -343,7 +379,7 @@
     function togglePlay() {
         isPaused = !isPaused;
         if (isPaused) { bgMusic.pause(); clearTimeout(moveTimer); document.getElementById('status').innerText = "SYSTEM PAUSED"; }
-        else { bgMusic.play(); if(gameActive) { resetStinkTimer(); document.getElementById('status').innerText = "DRAG TO MERGE CORPORATIONS..."; } }
+        else { bgMusic.play(); if(gameActive) { resetStinkTimer(); document.getElementById('status').innerText = "MERGING..."; } }
     }
 
     function resetStinkTimer() {
@@ -353,17 +389,15 @@
 
     function triggerLitterBoxFailure() {
         gameActive = false; bgMusic.playbackRate = 0.5;
-        document.getElementById('status').innerText = "CLEAN THE BOX: TICKET #404-POO";
+        document.getElementById('status').innerText = "TICKET #404-POO";
         document.getElementById('reset-btn').style.display = 'block';
         for(let i=0; i<40; i++) poops.push({ x: Math.random()*canvas.width, y: -50-Math.random()*500, speed: 3+Math.random()*5, rot: Math.random()*360 });
     }
 
     function resetGame() {
-        score = 0;
-        document.getElementById('score-val').innerText = score;
+        score = 0; document.getElementById('score-val').innerText = score;
         gameActive = true; poops = []; bgMusic.playbackRate = 1.0;
         document.getElementById('reset-btn').style.display = 'none';
-        document.getElementById('status').innerText = "DRAG TO MERGE CORPORATIONS...";
         createCerealGrid(); resetStinkTimer();
     }
 
@@ -374,22 +408,18 @@
                 if(grid[r][c]) ctx.drawImage(grid[r][c].img, grid[r][c].x+2, grid[r][c].y+2, TILE_SIZE-4, TILE_SIZE-4);
             }
         }
-        ctx.font = "30px Arial";
         poops.forEach(p => { 
             if(!isPaused) p.y += p.speed; 
             ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot*Math.PI/180); ctx.fillText("💩", 0,0); ctx.restore(); 
         });
         if(!gameActive) {
             ctx.drawImage(images[LITTER_BOX_IMG], canvas.width/2-50, 40, 100, 80);
-            ctx.fillStyle = "#00ffff"; ctx.font = "12px 'Courier New'";
-            ctx.fillText("MAINTENANCE REQUIRED", canvas.width/2-65, 140);
-            ctx.fillText("SUBMIT TICKET #404-POO", canvas.width/2-70, 160);
         }
         requestAnimationFrame(draw);
     }
 
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
     preload();
 </script>
+
 </body>
 </html>
