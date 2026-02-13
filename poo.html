@@ -145,6 +145,17 @@
     animation: oscillate 0.1s infinite;
     filter: hue-rotate(90deg) contrast(150%);
 }
+        @keyframes drive-by {
+    from { left: -200px; }
+    to { left: 100vw; }
+}
+
+/* Change 'forwards' to 'none' so it resets to the left (-200px) after finishing */
+.tank-active {
+    animation: drive-by 2.5s linear none;
+}
+
+
 
     </style>
 </head>
@@ -181,6 +192,7 @@
 <div style="position: relative; width: 100%; display: flex; justify-content: center; margin-top: 10px;">
     <img src="smokin.png" id="smokin-cat">
     <img src="poo-rule.png" id="poo-sign" style="display:none; width:50px; position:fixed; bottom:12px; left:15px; z-index:2000; filter:drop-shadow(0 0 5px var(--neon-pink)); pointer-events:none;">
+    <img src="cardboard-tank.png" id="chaos-tank" style="position:fixed; bottom:0; left:-200px; width:150px; z-index:3000; pointer-events:none; transition: none;">
     <div id="control-deck">
         <span id="mute-btn" class="deck-icon" onclick="toggleMute()">🔊</span>
         <span id="play-pause-btn" class="deck-icon" onclick="togglePlay()">⏯️</span>
@@ -217,7 +229,7 @@
 
     function preload() {
         document.getElementById('high-score-val').innerText = highScore;
-        const assets = [...CEREAL_TYPES, LITTER_BOX_IMG, 'smokin.png', 'poo-rule.png', 'corporate-azul.png', 'mochkil-skate.png', 'mochkil-living.png'];
+        const assets = [...CEREAL_TYPES, LITTER_BOX_IMG, 'smokin.png', 'poo-rule.png', 'corporate-azul.png', 'mochkil-skate.png', 'mochkil-living.png','cardboard-tank.png'];
         let loaded = 0;
         assets.forEach(src => {
             const img = new Image(); img.src = src;
@@ -234,6 +246,7 @@
             document.getElementById('splash-screen').style.display = 'none';
             document.getElementById('smokin-cat').style.display = 'block';
             document.getElementById('poo-sign').style.display = 'block';
+
             if (!audioStarted) { bgMusic.play(); audioStarted = true; }
         }, 500);
     }
@@ -341,9 +354,12 @@
         } else if (toRemove.size >= 5) { 
             multiplier = 5; msg = "MONOPOLY MERGER: 5X"; 
             triggerGlitchEffect();
-        } else if (toRemove.size === 4) { 
-            multiplier = 2; msg = "SYNERGY STRIKE: 2X"; 
-        }
+        }  else if (toRemove.size === 4) { 
+        multiplier = 2; 
+        msg = "SYNERGY STRIKE: 2X"; 
+        triggerTankDriveBy(); // <--- Launch the tank!
+    }
+
 
         document.getElementById('status').innerText = msg;
         updateScore(toRemove.size * multiplier);
@@ -388,6 +404,23 @@
             }
         }, 50);
     }
+
+    function triggerTankDriveBy() {
+    const tank = document.getElementById('chaos-tank');
+    
+    // Remove class if it's already there (to reset the animation)
+    tank.classList.remove('tank-active');
+    
+    // Void offset hack to force a re-flow so the animation can restart
+    void tank.offsetWidth; 
+    
+    // Start the drive-by
+    tank.classList.add('tank-active');
+    
+    // Optional: Add a tank sound if you have one!
+    // if (!isMuted) tankSound.play();
+}
+
 
     function updateScore(points) {
         score += points;
