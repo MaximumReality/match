@@ -4,7 +4,7 @@ const ASSETS = [
   'manifest.json',
   'sw.js',
   'favicon.png',
-  'cardboard-tank.png',
+  'cardboard_tank.png',
   'poo-rule.png',
   'hard-cyberpunk.mp3',
   'corporate-azul.png',
