@@ -1,7 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <script>!function(){const e=["maximumreality.github.io","maximumreality.xyz"];e.includes(window.location.hostname)||window.location.hostname.includes("localhost")||(document.documentElement.innerHTML='<body style="background:#000;color:#f0f;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:monospace;margin:0;"><h1 style="text-shadow:2px 2px #0ff">ACCESS DENIED</h1><p style="color:#0ff">[ REALITY COMPROMISED ]</p><p>Locked to MaximumReality.xyz</p><p style="font-size:.8rem;margin-top:20px">Ticket #404-POO: Unauthorized Mirror.</p></body>',window.stop())}();</script>
+   <script>
+!function(){
+    const e = ["maximumreality.github.io", "maximumreality.xyz"];
+    if (!e.includes(window.location.hostname) && !window.location.hostname.includes("localhost")) {
+        // Create the Rickroll Audio element
+        const audio = new Audio('rickroll.mp3');
+        audio.loop = true;
+        
+        // Update the screen and start the prank
+        document.documentElement.innerHTML = `
+        <body onclick="this.querySelector('audio').play()" style="background:#000;color:#f0f;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:monospace;margin:0;padding:20px;cursor:pointer;">
+            <audio src="rickroll.mp3" loop></audio>
+            <img src="rickroll.png" style="width:200px;margin-bottom:20px;border:2px solid #0ff;box-shadow:0 0 20px #0ff;">
+            <h1 style="text-shadow:2px 2px #0ff;margin:0;">ACCESS DENIED</h1>
+            <p style="color:#0ff;margin:10px 0;">[ REALITY COMPROMISED ]</p>
+            <p>Locked to MaximumReality.xyz</p>
+            <p style="font-size:1.2rem;margin-top:10px;color:#ff00ff;">TAP SCREEN TO DECRYPT</p>
+            <p style="font-size:.8rem;margin-top:20px;opacity:0.7;">Ticket #404-POO: Unauthorized Mirror.</p>
+        </body>`;
+        
+        // Attempt autoplay (browsers usually require a click, hence the "TAP SCREEN" message)
+        audio.play().catch(() => {
+            console.log("Audio waiting for user interaction to Rickroll.");
+        });
+        
+        window.stop();
+    }
+}();
+</script>
+
 
 
     <meta charset="UTF-8">
