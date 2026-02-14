@@ -1,4 +1,4 @@
-const CACHE_NAME = 'azulos-v6💩🙀'; // Version bump for the full folder sync
+const CACHE_NAME = 'azulos-v7💩🙀'; // Version bump for the full folder sync
 const ASSETS = [
   'index.html',
   'manifest.json',
@@ -21,7 +21,10 @@ const ASSETS = [
   'azulo_blueberry_vanilla.jpg',
   'azulos_glitch_cereal.png',
   'mochkil_puffs_orange.png',
-  'mochkil_puffs_dessert_edition.png'
+  'mochkil_puffs_dessert_edition.png',
+  'rickroll.png',
+  'rickroll.mp3'
+  
 ];
 
 // INSTALL: Cache assets individually, force SW to activate immediately
