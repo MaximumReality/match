@@ -29,7 +29,7 @@ Built entirely on an **iPhone 14 Pro Max**, this module utilizes **Z-Index Story
 
 ## 📁 REPOSITORY STRUCTURE
 - `index.html`: The multi-layered Golden Master interface.
-- `sw.js`: The `v6💩` Morocco-proof offline service worker.
+- `sw.js`: The `v7💩🙀` Morocco-proof offline service worker.
 - `manifest.json`: PWA configuration for iOS home-screen installation.
 - `/assets`: Neon-glitch cereal brands, cardboard tanks, and feline overlays.
 
