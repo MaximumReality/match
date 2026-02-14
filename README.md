@@ -18,7 +18,7 @@ Built entirely on an **iPhone 14 Pro Max**, this module utilizes **Z-Index Story
 ## 🛠️ TECH STACK
 - **Engine:** Pure HTML5 Canvas / Vanilla JavaScript Chaos Engine.
 - **Display:** Standalone PWA with `black-translucent` status bar integration for full Dynamic Island immersion.
-- **Offline Protocol:** Service Worker `v6💩` featuring `Promise.allSettled` asset security and automatic cache-scrubbing.
+- **Offline Protocol:** Service Worker `v7💩🙀` featuring `Promise.allSettled` asset security and automatic cache-scrubbing.
 - **Persistence:** `localStorage` integration for high-score retention.
 
 ## 🐾 THE CAST
