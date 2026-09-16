@@ -223,6 +223,7 @@
     let grid = []; let images = {}; let poops = [];
     let dragStart = null; let audioStarted = false; 
     let gameActive = true; let isPaused = false; let isMuted = false;
+    let isDragging = false;
     let moveTimer; const TIME_LIMIT = 7000;
     
     let score = 0;
@@ -298,6 +299,46 @@
             }
         }
     }, { passive: false });
+
+ canvas.addEventListener('mousedown', (e) => {
+    if (!gameActive || isPaused) return;
+    const rect = canvas.getBoundingClientRect();
+    dragStart = {
+        col: Math.floor((e.clientX - rect.left) / TILE_SIZE),
+        row: Math.floor((e.clientY - rect.top) / TILE_SIZE),
+        x: e.clientX, y: e.clientY
+    };
+    isDragging = true;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    if (!gameActive || !dragStart || isPaused || !isDragging) return;
+    const distOpen = 15;
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+    let targetRow = dragStart.row;
+    let targetCol = dragStart.col;
+
+    if (Math.abs(deltaX) > distOpen || Math.abs(deltaY) > distOpen) {
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            targetCol = deltaX > 0 ? dragStart.col + 1 : dragStart.col - 1;
+        } else {
+            targetRow = deltaY > 0 ? dragStart.row + 1 : dragStart.row - 1;
+        }
+        if (targetRow >= 0 && targetRow < ROWS && targetCol >= 0 && targetCol < COLS) {
+            swapTiles(dragStart.row, dragStart.col, targetRow, targetCol);
+            checkMatches();
+            resetStinkTimer();
+            dragStart = null;
+            isDragging = false;
+        }
+    }
+});
+
+window.addEventListener('mouseup', () => {
+    isDragging = false;
+    dragStart = null;
+});
 
     function swapTiles(r1, c1, r2, c2) {
         let temp = grid[r1][c1];
