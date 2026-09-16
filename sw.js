@@ -1,4 +1,4 @@
-const CACHE_NAME = 'azulos-v7💩🙀'; // Version bump for the full folder sync
+const CACHE_NAME = 'azulos-v7.1 💩🙀'; // Version bump for the full folder sync / added mouse funcion for computer play
 const ASSETS = [
   'index.html',
   'manifest.json',
